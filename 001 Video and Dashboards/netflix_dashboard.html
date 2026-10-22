@@ -1,0 +1,3778 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Netflix Recommendation Engine: what 1,048,575 ratings say</title>
+<style>
+:root{
+  --house:#221c35; --stage:#2b2442; --aisle:#3a3157; --ivory:#efe7d4; --dim:#b9b0c9;
+  --bulb:#f2b84b; --neutral:#d2c8b2; --low:#e5675c; --mid:#8f86a6;
+  --display:"Avenir Next Condensed","Roboto Condensed","Arial Narrow","Helvetica Neue",sans-serif-condensed,sans-serif;
+  --body:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --ui:"Avenir Next","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 140px)}
+body{margin:0;background:var(--house);color:var(--ivory);font-family:var(--body);font-size:17px;line-height:1.55}
+a{color:var(--bulb)}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:#221c35;
+    border-bottom:1px solid var(--aisle);padding:10px clamp(12px,3vw,32px);font-family:var(--ui);font-size:14px}
+.navrow{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.brand{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:.01em;margin-right:auto}
+.ladder{display:flex;gap:6px;flex-wrap:wrap}
+.ladder a{color:var(--ivory);text-decoration:none;padding:4px 10px;border:1px solid var(--aisle);border-radius:3px}
+.ladder a:hover{border-color:var(--bulb)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-top:8px;scrollbar-width:thin;max-width:100%}
+.chips span{color:var(--dim);white-space:nowrap;align-self:center;margin-right:4px}
+.chip{flex:0 0 auto;font:inherit;color:var(--ivory);background:transparent;border:1px solid var(--aisle);
+      border-radius:999px;padding:3px 10px 3px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip[aria-pressed="true"]{background:var(--aisle);border-color:var(--ivory)}
+a:focus-visible,.chip:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--bulb);outline-offset:2px}
+main{max-width:1180px;margin:0 auto;padding:0 clamp(12px,3vw,32px)}
+#hero{padding:clamp(28px,6vw,64px) 0 28px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(18px,4vw,48px);align-items:center}
+#hero h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,5.4vw,64px);line-height:1.02;margin:0 0 16px;letter-spacing:-.01em}
+#hero p{margin:0 0 10px;color:var(--dim);max-width:60ch}
+.heroviz{min-width:0}
+.ticket{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:18px;font-family:var(--ui);font-size:14px;color:var(--dim)}
+.ticket b{display:block;font-family:var(--display);font-size:26px;color:var(--ivory)}
+section.tier{padding:26px 0 8px;border-top:1px solid var(--aisle);scroll-margin-top:140px}
+section.tier>header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:14px}
+section.tier h2{font-family:var(--display);font-size:clamp(26px,3.4vw,36px);margin:0}
+section.tier>header p{margin:0;color:var(--dim);font-family:var(--ui);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+article{background:var(--stage);border-radius:4px;padding:18px 18px 12px;min-width:0;border-left:3px solid var(--aisle)}
+article.wide{grid-column:1/-1}
+.cid{font-family:var(--ui);font-size:13px;color:var(--bulb);margin:0 0 4px}
+article h3{font-family:var(--display);font-weight:700;font-size:21px;line-height:1.18;margin:0 0 12px}
+.chart{width:100%;min-width:0}
+.chart svg{display:block}
+.take{margin:12px 0 8px;font-size:16px}
+.notes{margin:0 0 8px;padding:0;list-style:none;font-family:var(--ui);font-size:13px;color:var(--dim)}
+details[data-query]{border-top:1px solid var(--aisle);padding-top:8px;font-family:var(--ui);font-size:14px}
+details[data-query] summary{cursor:pointer;color:var(--dim)}
+.qbar{display:flex;gap:10px;align-items:center;margin:8px 0}
+[data-lang]{font-size:12px;border:1px solid var(--aisle);padding:1px 7px;border-radius:3px;color:var(--ivory)}
+button[data-copy]{font:inherit;font-size:13px;color:var(--ivory);background:var(--aisle);border:0;border-radius:3px;padding:3px 10px;cursor:pointer}
+pre{margin:0;max-height:380px;overflow:auto;background:#1a1529;padding:12px;border-radius:3px}
+code{font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;font-size:12.5px;line-height:1.5;color:#e8e0cf}
+.k{color:#f2b84b}.s{color:#9fd6a9}.n{color:#89c4f4}.c{color:#8f86a6;font-style:italic}.f{color:#f28fb3}
+svg text{font-family:var(--ui);fill:var(--ivory)}
+svg .ax{fill:var(--dim);font-size:11px}
+svg .lbl{font-size:12px}
+svg .val{font-size:11px;fill:var(--dim)}
+[data-member]{transition:opacity .2s}
+.is-dimmed{opacity:.13}
+footer{max-width:1180px;margin:40px auto 0;padding:24px clamp(12px,3vw,32px) 48px;border-top:1px solid var(--aisle);font-family:var(--ui);font-size:14px;color:var(--dim)}
+footer h2{font-family:var(--display);color:var(--ivory);font-size:22px;margin:22px 0 8px}
+footer ul{padding-left:18px;margin:0}
+footer li{margin:4px 0;max-width:95ch}
+@media (max-width:820px){#hero{grid-template-columns:minmax(0,1fr)}.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.brand{font-size:16px}nav{font-size:13px}.ladder a{padding:3px 7px}article{padding:14px 12px 10px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}html{scroll-behavior:auto}}
+@media print{nav{display:none}body{background:#fff;color:#000}article{break-inside:avoid;background:#fff;border:1px solid #999}
+  details[data-query] pre{max-height:none}svg text{fill:#000}}
+</style>
+</head>
+<body>
+<nav aria-label="Dashboard">
+  <div class="navrow">
+    <div class="brand">Netflix Recommendation Engine</div>
+    <div class="ladder" role="list">
+      <a role="listitem" href="#tier-easy">Easy</a><a role="listitem" href="#tier-medium">Medium</a>
+      <a role="listitem" href="#tier-complex">Complex</a><a role="listitem" href="#tier-very">Very complex</a>
+    </div>
+  </div>
+  <div class="chips" id="chips"><span>Highlight a genre group</span></div>
+</nav>
+<main>
+  <section id="hero" aria-label="Headline finding">
+    <div>
+      <h1 id="hero-head"></h1>
+      <p id="hero-sub"></p>
+      <div class="ticket" id="ticket"></div>
+    </div>
+    <div class="heroviz" id="hero-viz"></div>
+  </section>
+  <section class="tier" id="tier-easy"><header><h2>Easy</h2><p>One table, one aggregate: what is in the two files</p></header><div class="grid"></div></section>
+  <section class="tier" id="tier-medium"><header><h2>Medium</h2><p>Two-way cuts on the clean view: which genres are popular and liked</p></header><div class="grid"></div></section>
+  <section class="tier" id="tier-complex"><header><h2>Complex</h2><p>Windows, effect sizes, similarity and a cross-validated driver model</p></header><div class="grid"></div></section>
+  <section class="tier" id="tier-very"><header><h2>Very complex</h2><p>The recommender itself: personal picks, SVD, variance decomposition, a paradox check and a repair audit</p></header><div class="grid"></div></section>
+</main>
+<footer>
+  <h2>Caveats</h2><ul id="caveats"></ul>
+  <h2>Assumptions to confirm</h2><ul id="assumptions"></ul>
+  <h2>Claims corrected while checking</h2><ul id="corrections"></ul>
+  <h2>How this was built</h2><ul id="how-built"></ul>
+  <details data-query id="setup-panel"><summary>Show the setup SQL (clean tables)</summary>
+    <div class="qbar"><span data-lang>SQL</span><button data-copy type="button">Copy</button></div><pre><code></code></pre></details>
+</footer>
+<script type="application/json" id="dashboard-data">{
+  "dataset": "ratings.csv",
+  "sampled": false,
+  "row_count": 1048575,
+  "sensitive_columns_excluded": [
+    "timestamp"
+  ],
+  "key_dimension": "genre_group",
+  "key_members": [
+    "Drama",
+    "Comedy",
+    "Action",
+    "Thriller",
+    "Adventure",
+    "Romance",
+    "Crime",
+    "Other genres"
+  ],
+  "hero": {
+    "headline": "A fifth of the movies collect 87.4% of every rating, so the recommender has to earn its keep in the long tail",
+    "card_ref": "C1",
+    "chart": {
+      "cum_pct": [
+        72.96,
+        87.41,
+        93.37,
+        96.35,
+        97.97,
+        98.88,
+        99.4,
+        99.71,
+        99.87,
+        100.0
+      ]
+    },
+    "top20_share": 87.4,
+    "bottom50_share": 2.0
+  },
+  "cards": [
+    {
+      "id": "E1",
+      "tier": "easy",
+      "headline": "4.0 stars is the most common rating, given 28.15% of the time",
+      "chart_type": "histogram",
+      "advisor": "chart_advice_rating.json",
+      "takeaway": "Across all 1,048,575 ratings the scale skews generous: 50.3% are 4 stars or more and only 13.1% are 2 stars or less. A recommender that predicts a flat average will therefore look accurate while separating little.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/easy/E1.sql"
+      ],
+      "query_text": "SELECT rating,\n       COUNT(*) AS n,\n       ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM dataset), 2) AS pct\nFROM dataset\nGROUP BY rating\nORDER BY rating",
+      "data": {
+        "rows": [
+          {
+            "rating": 0.5,
+            "n": 13232,
+            "pct": 1.26
+          },
+          {
+            "rating": 1.0,
+            "n": 35144,
+            "pct": 3.35
+          },
+          {
+            "rating": 1.5,
+            "n": 14029,
+            "pct": 1.34
+          },
+          {
+            "rating": 2.0,
+            "n": 74706,
+            "pct": 7.12
+          },
+          {
+            "rating": 2.5,
+            "n": 44791,
+            "pct": 4.27
+          },
+          {
+            "rating": 3.0,
+            "n": 226202,
+            "pct": 21.57
+          },
+          {
+            "rating": 3.5,
+            "n": 112926,
+            "pct": 10.77
+          },
+          {
+            "rating": 4.0,
+            "n": 295135,
+            "pct": 28.15
+          },
+          {
+            "rating": 4.5,
+            "n": 79848,
+            "pct": 7.61
+          },
+          {
+            "rating": 5.0,
+            "n": 152562,
+            "pct": 14.55
+          }
+        ],
+        "total": 1048575,
+        "share_high": 50.3,
+        "share_low": 13.1
+      },
+      "backing": [
+        {
+          "claim": "most common",
+          "values": {
+            "0.5": 13232,
+            "1.0": 35144,
+            "1.5": 14029,
+            "2.0": 74706,
+            "2.5": 44791,
+            "3.0": 226202,
+            "3.5": 112926,
+            "4.0": 295135,
+            "4.5": 79848,
+            "5.0": 152562
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "E2",
+      "tier": "easy",
+      "headline": "48.6% of the 27,278 catalogue titles have no rating in this file",
+      "chart_type": "bar",
+      "advisor": "chart_advice_catalogue_status.json",
+      "takeaway": "14,026 movies carry at least one rating and 13,252 carry none. Collaborative filtering can only score rated titles, so the 13,252 unrated ones are reachable through content (genre) similarity alone.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/easy/E2.sql"
+      ],
+      "query_text": "SELECT CASE WHEN r.movieId IS NULL THEN 'Never rated' ELSE 'Rated' END AS rated_status,\n       COUNT(*) AS n\nFROM movies m\nLEFT JOIN (SELECT DISTINCT movieId FROM dataset) r ON r.movieId = m.movieId\nGROUP BY 1\nORDER BY n DESC",
+      "data": {
+        "rows": [
+          {
+            "rated_status": "Rated",
+            "n": 14026
+          },
+          {
+            "rated_status": "Never rated",
+            "n": 13252
+          }
+        ],
+        "catalogue": 27278,
+        "rated": 14026,
+        "never": 13252,
+        "never_pct": 48.6,
+        "min_one": 1
+      },
+      "backing": [
+        {
+          "claim": "at least one rating",
+          "values": {
+            "Rated": 14026,
+            "Never rated": 13252
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "E3",
+      "tier": "easy",
+      "headline": "Drama is the most popular genre: 461,704 ratings, and all 7,120 users have rated at least one",
+      "chart_type": "bar",
+      "advisor": "chart_advice_genre_count.json",
+      "takeaway": "Comedy (395,994) and Action (293,934) follow, while Film-Noir is the least-rated genre with 11,241. A movie is counted once in each genre it lists, so the bars add up to more than the number of ratings.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/easy/E3.sql"
+      ],
+      "query_text": "SELECT genre, genre_group,\n       COUNT(*) AS n_ratings,\n       COUNT(DISTINCT userId) AS n_users,\n       (SELECT COUNT(DISTINCT userId) FROM dataset) AS all_users\nFROM clean_genre\nGROUP BY genre, genre_group\nORDER BY n_ratings DESC",
+      "data": {
+        "rows": [
+          {
+            "genre": "Drama",
+            "genre_group": "Drama",
+            "n_ratings": 461704,
+            "n_users": 7120,
+            "all_users": 7120
+          },
+          {
+            "genre": "Comedy",
+            "genre_group": "Comedy",
+            "n_ratings": 395994,
+            "n_users": 7117,
+            "all_users": 7120
+          },
+          {
+            "genre": "Action",
+            "genre_group": "Action",
+            "n_ratings": 293934,
+            "n_users": 7096,
+            "all_users": 7120
+          },
+          {
+            "genre": "Thriller",
+            "genre_group": "Thriller",
+            "n_ratings": 278937,
+            "n_users": 7099,
+            "all_users": 7120
+          },
+          {
+            "genre": "Adventure",
+            "genre_group": "Adventure",
+            "n_ratings": 230358,
+            "n_users": 7095,
+            "all_users": 7120
+          },
+          {
+            "genre": "Romance",
+            "genre_group": "Romance",
+            "n_ratings": 201209,
+            "n_users": 7083,
+            "all_users": 7120
+          },
+          {
+            "genre": "Crime",
+            "genre_group": "Crime",
+            "n_ratings": 171866,
+            "n_users": 7040,
+            "all_users": 7120
+          },
+          {
+            "genre": "Sci-Fi",
+            "genre_group": "Other genres",
+            "n_ratings": 166024,
+            "n_users": 6997,
+            "all_users": 7120
+          },
+          {
+            "genre": "Fantasy",
+            "genre_group": "Other genres",
+            "n_ratings": 110815,
+            "n_users": 6850,
+            "all_users": 7120
+          },
+          {
+            "genre": "Children",
+            "genre_group": "Other genres",
+            "n_ratings": 87101,
+            "n_users": 6549,
+            "all_users": 7120
+          },
+          {
+            "genre": "Mystery",
+            "genre_group": "Other genres",
+            "n_ratings": 82157,
+            "n_users": 6636,
+            "all_users": 7120
+          },
+          {
+            "genre": "Horror",
+            "genre_group": "Other genres",
+            "n_ratings": 77518,
+            "n_users": 6255,
+            "all_users": 7120
+          },
+          {
+            "genre": "Animation",
+            "genre_group": "Other genres",
+            "n_ratings": 59117,
+            "n_users": 6104,
+            "all_users": 7120
+          },
+          {
+            "genre": "War",
+            "genre_group": "Other genres",
+            "n_ratings": 54347,
+            "n_users": 6377,
+            "all_users": 7120
+          },
+          {
+            "genre": "Musical",
+            "genre_group": "Other genres",
+            "n_ratings": 45788,
+            "n_users": 5866,
+            "all_users": 7120
+          },
+          {
+            "genre": "IMAX",
+            "genre_group": "Other genres",
+            "n_ratings": 25527,
+            "n_users": 4703,
+            "all_users": 7120
+          },
+          {
+            "genre": "Western",
+            "genre_group": "Other genres",
+            "n_ratings": 22488,
+            "n_users": 4982,
+            "all_users": 7120
+          },
+          {
+            "genre": "Documentary",
+            "genre_group": "Other genres",
+            "n_ratings": 12675,
+            "n_users": 2664,
+            "all_users": 7120
+          },
+          {
+            "genre": "Film-Noir",
+            "genre_group": "Other genres",
+            "n_ratings": 11241,
+            "n_users": 2999,
+            "all_users": 7120
+          },
+          {
+            "genre": "(no genres listed)",
+            "genre_group": "Other genres",
+            "n_ratings": 7,
+            "n_users": 7,
+            "all_users": 7120
+          }
+        ]
+      },
+      "backing": [
+        {
+          "claim": "most popular / least-rated",
+          "values": {
+            "Drama": 461704,
+            "Comedy": 395994,
+            "Action": 293934,
+            "Thriller": 278937,
+            "Adventure": 230358,
+            "Romance": 201209,
+            "Crime": 171866,
+            "Sci-Fi": 166024,
+            "Fantasy": 110815,
+            "Children": 87101,
+            "Mystery": 82157,
+            "Horror": 77518,
+            "Animation": 59117,
+            "War": 54347,
+            "Musical": 45788,
+            "IMAX": 25527,
+            "Western": 22488,
+            "Documentary": 12675,
+            "Film-Noir": 11241,
+            "(no genres listed)": 7
+          }
+        },
+        {
+          "claim": "all users",
+          "values": {
+            "drama_users": 7120,
+            "all_users": 7120
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "The (no genres listed) placeholder (7 ratings) is drawn but not named as a genre."
+      ]
+    },
+    {
+      "id": "E4",
+      "tier": "easy",
+      "headline": "Ratings are complete and every one joins to the catalogue; the catalogue has 206 untrimmed titles and 246 genre-less movies",
+      "chart_type": "table",
+      "advisor": "chart_advice_movies_quality.json",
+      "takeaway": "ratings.csv has 0 missing cells, 0 repeated user-movie pairs and 0 orphan ratings. In movies.csv, 32 rows share a raw title and 23 titles carry no year; the clean view trims titles but keeps every row (see V5).",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/easy/E4.sql"
+      ],
+      "query_text": "SELECT 'Ratings with no catalogue movie' AS issue, 'ratings.csv' AS source,\n       COUNT(*) AS n\nFROM dataset d WHERE NOT EXISTS (SELECT 1 FROM movies m WHERE m.movieId = d.movieId)\nUNION ALL\nSELECT 'Missing cells (user, movie, rating)', 'ratings.csv',\n       SUM(userId IS NULL) + SUM(movieId IS NULL) + SUM(rating IS NULL)\nFROM dataset\nUNION ALL\nSELECT 'Repeated user-movie pairs', 'ratings.csv',\n       COUNT(*) - (SELECT COUNT(*) FROM (SELECT DISTINCT userId, movieId FROM dataset))\nFROM dataset\nUNION ALL\nSELECT 'Titles with leading or trailing spaces', 'movies.csv',\n       SUM(title <> TRIM(title))\nFROM movies\nUNION ALL\nSELECT 'Rows whose raw title repeats', 'movies.csv',\n       COALESCE(SUM(c), 0) FROM (SELECT COUNT(*) AS c FROM movies GROUP BY title HAVING COUNT(*) > 1)\nUNION ALL\nSELECT 'Movies with no genres listed', 'movies.csv',\n       SUM(genres = '(no genres listed)')\nFROM movies\nUNION ALL\nSELECT 'Titles with no release year', 'movies.csv',\n       SUM(NOT (TRIM(title) GLOB '*([0-9][0-9][0-9][0-9])'))\nFROM movies",
+      "data": {
+        "rows": [
+          {
+            "issue": "Ratings with no catalogue movie",
+            "source": "ratings.csv",
+            "n": 0
+          },
+          {
+            "issue": "Missing cells (user, movie, rating)",
+            "source": "ratings.csv",
+            "n": 0
+          },
+          {
+            "issue": "Repeated user-movie pairs",
+            "source": "ratings.csv",
+            "n": 0
+          },
+          {
+            "issue": "Titles with leading or trailing spaces",
+            "source": "movies.csv",
+            "n": 206
+          },
+          {
+            "issue": "Rows whose raw title repeats",
+            "source": "movies.csv",
+            "n": 32
+          },
+          {
+            "issue": "Movies with no genres listed",
+            "source": "movies.csv",
+            "n": 246
+          },
+          {
+            "issue": "Titles with no release year",
+            "source": "movies.csv",
+            "n": 23
+          }
+        ]
+      },
+      "backing": [
+        {
+          "claim": "every rating joins",
+          "values": {
+            "orphan_ratings": 0
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "E5",
+      "tier": "easy",
+      "headline": "Every user has at least 20 ratings, yet the median user has 69 and the busiest 2,711",
+      "chart_type": "histogram",
+      "advisor": "chart_advice_user_activity.json",
+      "takeaway": "The mean of 147.3 sits well above the median of 69, so a few heavy raters pull the average. Users with 351 or more ratings (the top tenth) supply 45.0% of all ratings, and they are kept.",
+      "lang": "SQL + Python",
+      "query_files": [
+        "01_queries/easy/E5.sql",
+        "01_queries/easy/E5.py"
+      ],
+      "query_text": "SELECT userId, n_ratings FROM user_activity ORDER BY n_ratings\n\ndef e5_user_activity(rows):\n    s = pd.Series([r[\"n_ratings\"] for r in rows])\n    edges = [20, 35, 50, 75, 100, 150, 200, 300, 500, 1000, 3000]\n    cut = pd.cut(s, bins=edges, right=False)\n    bins = [{\"lo\": int(iv.left), \"hi\": int(iv.right), \"users\": int(c)}\n            for iv, c in cut.value_counts(sort=False).items()]\n    p90 = float(s.quantile(0.9))\n    heavy_share = round(100 * float(s[s >= p90].sum()) / float(s.sum()), 1)\n    return {\"bins\": bins, \"users\": int(s.size), \"min\": int(s.min()), \"median\": float(s.median()), \"top_decile_share\": heavy_share,\n            \"max\": int(s.max()), \"p90\": float(s.quantile(0.9)), \"mean\": round(float(s.mean()), 1)}",
+      "data": {
+        "bins": [
+          {
+            "lo": 20,
+            "hi": 35,
+            "users": 1760
+          },
+          {
+            "lo": 35,
+            "hi": 50,
+            "users": 926
+          },
+          {
+            "lo": 50,
+            "hi": 75,
+            "users": 1064
+          },
+          {
+            "lo": 75,
+            "hi": 100,
+            "users": 609
+          },
+          {
+            "lo": 100,
+            "hi": 150,
+            "users": 873
+          },
+          {
+            "lo": 150,
+            "hi": 200,
+            "users": 428
+          },
+          {
+            "lo": 200,
+            "hi": 300,
+            "users": 557
+          },
+          {
+            "lo": 300,
+            "hi": 500,
+            "users": 499
+          },
+          {
+            "lo": 500,
+            "hi": 1000,
+            "users": 309
+          },
+          {
+            "lo": 1000,
+            "hi": 3000,
+            "users": 95
+          }
+        ],
+        "users": 7120,
+        "min": 20,
+        "median": 69.0,
+        "top_decile_share": 45.0,
+        "max": 2711,
+        "p90": 351.10000000000036,
+        "mean": 147.3
+      },
+      "backing": [
+        {
+          "claim": "every",
+          "values": {
+            "min_ratings_per_user": 20
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Bins are [lo, hi) rating counts per user with unequal widths, drawn as equal columns and labelled by bin start; outliers kept."
+      ]
+    },
+    {
+      "id": "M1",
+      "tier": "medium",
+      "headline": "Film-Noir earns the highest average rating (3.96) and Horror the lowest (3.26) among genres with 1,000+ ratings",
+      "chart_type": "bar",
+      "advisor": "chart_advice_genre_rating.json",
+      "takeaway": "Film-Noir rests on only 11,241 ratings, so it is a niche favourite rather than a mass one. Among the seven big genres, Crime (3.68) leads and Comedy (3.43) trails; the 7-rating no-genre placeholder (3.07) is drawn but not ranked.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/medium/M1.sql"
+      ],
+      "query_text": "SELECT genre, genre_group,\n       AVG(rating) AS avg_rating,\n       COUNT(*) AS n_ratings\nFROM clean_genre\nGROUP BY genre, genre_group\nORDER BY avg_rating DESC",
+      "data": {
+        "rows": [
+          {
+            "genre": "Film-Noir",
+            "genre_group": "Other genres",
+            "avg_rating": 3.956,
+            "n_ratings": 11241
+          },
+          {
+            "genre": "War",
+            "genre_group": "Other genres",
+            "avg_rating": 3.821,
+            "n_ratings": 54347
+          },
+          {
+            "genre": "Documentary",
+            "genre_group": "Other genres",
+            "avg_rating": 3.759,
+            "n_ratings": 12675
+          },
+          {
+            "genre": "Crime",
+            "genre_group": "Crime",
+            "avg_rating": 3.684,
+            "n_ratings": 171866
+          },
+          {
+            "genre": "Drama",
+            "genre_group": "Drama",
+            "avg_rating": 3.678,
+            "n_ratings": 461704
+          },
+          {
+            "genre": "Mystery",
+            "genre_group": "Other genres",
+            "avg_rating": 3.665,
+            "n_ratings": 82157
+          },
+          {
+            "genre": "IMAX",
+            "genre_group": "Other genres",
+            "avg_rating": 3.657,
+            "n_ratings": 25527
+          },
+          {
+            "genre": "Animation",
+            "genre_group": "Other genres",
+            "avg_rating": 3.608,
+            "n_ratings": 59117
+          },
+          {
+            "genre": "Western",
+            "genre_group": "Other genres",
+            "avg_rating": 3.573,
+            "n_ratings": 22488
+          },
+          {
+            "genre": "Musical",
+            "genre_group": "Other genres",
+            "avg_rating": 3.55,
+            "n_ratings": 45788
+          },
+          {
+            "genre": "Romance",
+            "genre_group": "Romance",
+            "avg_rating": 3.546,
+            "n_ratings": 201209
+          },
+          {
+            "genre": "Thriller",
+            "genre_group": "Thriller",
+            "avg_rating": 3.512,
+            "n_ratings": 278937
+          },
+          {
+            "genre": "Fantasy",
+            "genre_group": "Other genres",
+            "avg_rating": 3.509,
+            "n_ratings": 110815
+          },
+          {
+            "genre": "Adventure",
+            "genre_group": "Adventure",
+            "avg_rating": 3.507,
+            "n_ratings": 230358
+          },
+          {
+            "genre": "Action",
+            "genre_group": "Action",
+            "avg_rating": 3.451,
+            "n_ratings": 293934
+          },
+          {
+            "genre": "Sci-Fi",
+            "genre_group": "Other genres",
+            "avg_rating": 3.435,
+            "n_ratings": 166024
+          },
+          {
+            "genre": "Comedy",
+            "genre_group": "Comedy",
+            "avg_rating": 3.432,
+            "n_ratings": 395994
+          },
+          {
+            "genre": "Children",
+            "genre_group": "Other genres",
+            "avg_rating": 3.404,
+            "n_ratings": 87101
+          },
+          {
+            "genre": "Horror",
+            "genre_group": "Other genres",
+            "avg_rating": 3.262,
+            "n_ratings": 77518
+          },
+          {
+            "genre": "(no genres listed)",
+            "genre_group": "Other genres",
+            "avg_rating": 3.071,
+            "n_ratings": 7
+          }
+        ],
+        "reconciled_with": "02_results/answer.json",
+        "min_n_rank": 1000
+      },
+      "backing": [
+        {
+          "claim": "highest/lowest",
+          "values": {
+            "Film-Noir": 3.956,
+            "War": 3.821,
+            "Documentary": 3.759,
+            "Crime": 3.684,
+            "Drama": 3.678,
+            "Mystery": 3.665,
+            "IMAX": 3.657,
+            "Animation": 3.608,
+            "Western": 3.573,
+            "Musical": 3.55,
+            "Romance": 3.546,
+            "Thriller": 3.512,
+            "Fantasy": 3.509,
+            "Adventure": 3.507,
+            "Action": 3.451,
+            "Sci-Fi": 3.435,
+            "Comedy": 3.432,
+            "Children": 3.404,
+            "Horror": 3.262,
+            "(no genres listed)": 3.071
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "M2",
+      "tier": "medium",
+      "headline": "Film-Noir has the highest share of 4-5 star ratings (69.3%); Horror has the highest share of 0.5-2 stars (20.5%)",
+      "chart_type": "stacked_bar_100",
+      "advisor": "chart_advice_genre_band.json",
+      "takeaway": "The gap between the two is 28.5 points of top ratings. Genres with at least 1,000 ratings are shown, so the seven-rating no-genre group is excluded here.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/medium/M2.sql"
+      ],
+      "query_text": "SELECT genre, genre_group,\n       COUNT(*) AS n,\n       ROUND(100.0 * SUM(rating >= 4) / COUNT(*), 1) AS pct_high,\n       ROUND(100.0 * SUM(rating > 2 AND rating < 4) / COUNT(*), 1) AS pct_mid,\n       ROUND(100.0 * SUM(rating <= 2) / COUNT(*), 1) AS pct_low\nFROM clean_genre\nGROUP BY genre, genre_group\nHAVING COUNT(*) >= ?\nORDER BY pct_high DESC",
+      "data": {
+        "rows": [
+          {
+            "genre": "Film-Noir",
+            "genre_group": "Other genres",
+            "n": 11241,
+            "pct_high": 69.3,
+            "pct_mid": 25.4,
+            "pct_low": 5.3
+          },
+          {
+            "genre": "War",
+            "genre_group": "Other genres",
+            "n": 54347,
+            "pct_high": 62.5,
+            "pct_mid": 29.6,
+            "pct_low": 7.9
+          },
+          {
+            "genre": "Documentary",
+            "genre_group": "Other genres",
+            "n": 12675,
+            "pct_high": 61.6,
+            "pct_mid": 29.5,
+            "pct_low": 8.9
+          },
+          {
+            "genre": "Crime",
+            "genre_group": "Crime",
+            "n": 171866,
+            "pct_high": 56.4,
+            "pct_mid": 33.8,
+            "pct_low": 9.8
+          },
+          {
+            "genre": "Drama",
+            "genre_group": "Drama",
+            "n": 461704,
+            "pct_high": 56.3,
+            "pct_mid": 34.1,
+            "pct_low": 9.6
+          },
+          {
+            "genre": "Mystery",
+            "genre_group": "Other genres",
+            "n": 82157,
+            "pct_high": 56.0,
+            "pct_mid": 33.8,
+            "pct_low": 10.2
+          },
+          {
+            "genre": "IMAX",
+            "genre_group": "Other genres",
+            "n": 25527,
+            "pct_high": 53.8,
+            "pct_mid": 37.1,
+            "pct_low": 9.1
+          },
+          {
+            "genre": "Animation",
+            "genre_group": "Other genres",
+            "n": 59117,
+            "pct_high": 53.0,
+            "pct_mid": 36.6,
+            "pct_low": 10.5
+          },
+          {
+            "genre": "Western",
+            "genre_group": "Other genres",
+            "n": 22488,
+            "pct_high": 52.4,
+            "pct_mid": 35.6,
+            "pct_low": 12.0
+          },
+          {
+            "genre": "Musical",
+            "genre_group": "Other genres",
+            "n": 45788,
+            "pct_high": 51.1,
+            "pct_mid": 36.5,
+            "pct_low": 12.4
+          },
+          {
+            "genre": "Romance",
+            "genre_group": "Romance",
+            "n": 201209,
+            "pct_high": 50.8,
+            "pct_mid": 37.0,
+            "pct_low": 12.2
+          },
+          {
+            "genre": "Fantasy",
+            "genre_group": "Other genres",
+            "n": 110815,
+            "pct_high": 49.0,
+            "pct_mid": 37.5,
+            "pct_low": 13.5
+          },
+          {
+            "genre": "Thriller",
+            "genre_group": "Thriller",
+            "n": 278937,
+            "pct_high": 49.0,
+            "pct_mid": 38.2,
+            "pct_low": 12.8
+          },
+          {
+            "genre": "Adventure",
+            "genre_group": "Adventure",
+            "n": 230358,
+            "pct_high": 48.8,
+            "pct_mid": 38.0,
+            "pct_low": 13.3
+          },
+          {
+            "genre": "Action",
+            "genre_group": "Action",
+            "n": 293934,
+            "pct_high": 46.4,
+            "pct_mid": 39.1,
+            "pct_low": 14.5
+          },
+          {
+            "genre": "Sci-Fi",
+            "genre_group": "Other genres",
+            "n": 166024,
+            "pct_high": 46.3,
+            "pct_mid": 38.0,
+            "pct_low": 15.7
+          },
+          {
+            "genre": "Comedy",
+            "genre_group": "Comedy",
+            "n": 395994,
+            "pct_high": 46.2,
+            "pct_mid": 38.7,
+            "pct_low": 15.1
+          },
+          {
+            "genre": "Children",
+            "genre_group": "Other genres",
+            "n": 87101,
+            "pct_high": 45.1,
+            "pct_mid": 39.3,
+            "pct_low": 15.6
+          },
+          {
+            "genre": "Horror",
+            "genre_group": "Other genres",
+            "n": 77518,
+            "pct_high": 40.8,
+            "pct_mid": 38.6,
+            "pct_low": 20.5
+          }
+        ],
+        "min_n": 1000,
+        "band_edges": {
+          "high": [
+            4,
+            5
+          ],
+          "low": [
+            0.5,
+            2
+          ]
+        },
+        "gap": 28.5
+      },
+      "backing": [
+        {
+          "claim": "highest share",
+          "values": {
+            "Film-Noir": [
+              69.3,
+              5.3
+            ],
+            "War": [
+              62.5,
+              7.9
+            ],
+            "Documentary": [
+              61.6,
+              8.9
+            ],
+            "Crime": [
+              56.4,
+              9.8
+            ],
+            "Drama": [
+              56.3,
+              9.6
+            ],
+            "Mystery": [
+              56.0,
+              10.2
+            ],
+            "IMAX": [
+              53.8,
+              9.1
+            ],
+            "Animation": [
+              53.0,
+              10.5
+            ],
+            "Western": [
+              52.4,
+              12.0
+            ],
+            "Musical": [
+              51.1,
+              12.4
+            ],
+            "Romance": [
+              50.8,
+              12.2
+            ],
+            "Fantasy": [
+              49.0,
+              13.5
+            ],
+            "Thriller": [
+              49.0,
+              12.8
+            ],
+            "Adventure": [
+              48.8,
+              13.3
+            ],
+            "Action": [
+              46.4,
+              14.5
+            ],
+            "Sci-Fi": [
+              46.3,
+              15.7
+            ],
+            "Comedy": [
+              46.2,
+              15.1
+            ],
+            "Children": [
+              45.1,
+              15.6
+            ],
+            "Horror": [
+              40.8,
+              20.5
+            ]
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "M3",
+      "tier": "medium",
+      "headline": "In 7 of 8 genre groups the best-rated decade is before 1970",
+      "chart_type": "heatmap",
+      "advisor": "chart_advice_group_decade.json",
+      "takeaway": "Cells with at least 1,000 ratings were compared. Older films rate higher across genres, which is consistent with only well-regarded classics still being watched, so release decade is associated with rating but is not evidence that old films are better.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/medium/M3.sql"
+      ],
+      "query_text": "SELECT genre_group, decade,\n       AVG(rating) AS avg_rating,\n       COUNT(*) AS n\nFROM clean_genre\nWHERE decade IS NOT NULL\nGROUP BY genre_group, decade\nORDER BY genre_group, decade",
+      "data": {
+        "rows": [
+          {
+            "genre_group": "Action",
+            "decade": 1900,
+            "avg_rating": 3.7,
+            "n": 10
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1910,
+            "avg_rating": 3.333,
+            "n": 9
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1920,
+            "avg_rating": 3.848,
+            "n": 56
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1930,
+            "avg_rating": 3.699,
+            "n": 777
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1940,
+            "avg_rating": 4.061,
+            "n": 368
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1950,
+            "avg_rating": 4.016,
+            "n": 2570
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1960,
+            "avg_rating": 3.856,
+            "n": 7694
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1970,
+            "avg_rating": 3.719,
+            "n": 12533
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1980,
+            "avg_rating": 3.625,
+            "n": 52125
+          },
+          {
+            "genre_group": "Action",
+            "decade": 1990,
+            "avg_rating": 3.31,
+            "n": 131542
+          },
+          {
+            "genre_group": "Action",
+            "decade": 2000,
+            "avg_rating": 3.454,
+            "n": 76704
+          },
+          {
+            "genre_group": "Action",
+            "decade": 2010,
+            "avg_rating": 3.547,
+            "n": 9546
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1900,
+            "avg_rating": 3.7,
+            "n": 10
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1910,
+            "avg_rating": 3.083,
+            "n": 12
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1920,
+            "avg_rating": 3.931,
+            "n": 211
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1930,
+            "avg_rating": 3.832,
+            "n": 2021
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1940,
+            "avg_rating": 3.887,
+            "n": 778
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1950,
+            "avg_rating": 3.937,
+            "n": 4915
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1960,
+            "avg_rating": 3.797,
+            "n": 8959
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1970,
+            "avg_rating": 3.736,
+            "n": 12587
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1980,
+            "avg_rating": 3.597,
+            "n": 43962
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 1990,
+            "avg_rating": 3.334,
+            "n": 87682
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 2000,
+            "avg_rating": 3.543,
+            "n": 62826
+          },
+          {
+            "genre_group": "Adventure",
+            "decade": 2010,
+            "avg_rating": 3.577,
+            "n": 6395
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1900,
+            "avg_rating": 1.5,
+            "n": 1
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1910,
+            "avg_rating": 3.273,
+            "n": 33
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1920,
+            "avg_rating": 3.891,
+            "n": 567
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1930,
+            "avg_rating": 4.055,
+            "n": 2574
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1940,
+            "avg_rating": 3.934,
+            "n": 2754
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1950,
+            "avg_rating": 3.845,
+            "n": 5408
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1960,
+            "avg_rating": 3.718,
+            "n": 9421
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1970,
+            "avg_rating": 3.76,
+            "n": 18859
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1980,
+            "avg_rating": 3.462,
+            "n": 67536
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 1990,
+            "avg_rating": 3.373,
+            "n": 194293
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 2000,
+            "avg_rating": 3.37,
+            "n": 87471
+          },
+          {
+            "genre_group": "Comedy",
+            "decade": 2010,
+            "avg_rating": 3.511,
+            "n": 7059
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1900,
+            "avg_rating": 4.25,
+            "n": 2
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1910,
+            "avg_rating": 4.5,
+            "n": 1
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1920,
+            "avg_rating": 4.069,
+            "n": 101
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1930,
+            "avg_rating": 4.051,
+            "n": 746
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1940,
+            "avg_rating": 3.998,
+            "n": 1550
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1950,
+            "avg_rating": 4.038,
+            "n": 2936
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1960,
+            "avg_rating": 3.923,
+            "n": 4046
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1970,
+            "avg_rating": 4.064,
+            "n": 11554
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1980,
+            "avg_rating": 3.515,
+            "n": 18018
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 1990,
+            "avg_rating": 3.677,
+            "n": 83598
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 2000,
+            "avg_rating": 3.607,
+            "n": 45925
+          },
+          {
+            "genre_group": "Crime",
+            "decade": 2010,
+            "avg_rating": 3.663,
+            "n": 3389
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1910,
+            "avg_rating": 3.607,
+            "n": 61
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1920,
+            "avg_rating": 3.842,
+            "n": 748
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1930,
+            "avg_rating": 3.799,
+            "n": 4731
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1940,
+            "avg_rating": 3.973,
+            "n": 8772
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1950,
+            "avg_rating": 3.938,
+            "n": 12462
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1960,
+            "avg_rating": 3.892,
+            "n": 17176
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1970,
+            "avg_rating": 3.898,
+            "n": 25809
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1980,
+            "avg_rating": 3.663,
+            "n": 54646
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 1990,
+            "avg_rating": 3.633,
+            "n": 210433
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 2000,
+            "avg_rating": 3.633,
+            "n": 115951
+          },
+          {
+            "genre_group": "Drama",
+            "decade": 2010,
+            "avg_rating": 3.672,
+            "n": 10915
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1890,
+            "avg_rating": 4.0,
+            "n": 1
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1900,
+            "avg_rating": 3.75,
+            "n": 22
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1910,
+            "avg_rating": 3.233,
+            "n": 30
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1920,
+            "avg_rating": 3.793,
+            "n": 1350
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1930,
+            "avg_rating": 3.793,
+            "n": 12689
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1940,
+            "avg_rating": 3.806,
+            "n": 17593
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1950,
+            "avg_rating": 3.724,
+            "n": 22888
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1960,
+            "avg_rating": 3.743,
+            "n": 28981
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1970,
+            "avg_rating": 3.657,
+            "n": 48740
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1980,
+            "avg_rating": 3.526,
+            "n": 111332
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 1990,
+            "avg_rating": 3.433,
+            "n": 294649
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 2000,
+            "avg_rating": 3.509,
+            "n": 190769
+          },
+          {
+            "genre_group": "Other genres",
+            "decade": 2010,
+            "avg_rating": 3.613,
+            "n": 25759
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1900,
+            "avg_rating": 3.5,
+            "n": 1
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1910,
+            "avg_rating": 3.438,
+            "n": 8
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1920,
+            "avg_rating": 4.002,
+            "n": 272
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1930,
+            "avg_rating": 3.937,
+            "n": 3077
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1940,
+            "avg_rating": 4.069,
+            "n": 4595
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1950,
+            "avg_rating": 3.923,
+            "n": 7274
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1960,
+            "avg_rating": 3.832,
+            "n": 6304
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1970,
+            "avg_rating": 3.72,
+            "n": 3917
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1980,
+            "avg_rating": 3.531,
+            "n": 22774
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 1990,
+            "avg_rating": 3.468,
+            "n": 101617
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 2000,
+            "avg_rating": 3.536,
+            "n": 48810
+          },
+          {
+            "genre_group": "Romance",
+            "decade": 2010,
+            "avg_rating": 3.505,
+            "n": 2560
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1910,
+            "avg_rating": 3.5,
+            "n": 1
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1920,
+            "avg_rating": 3.733,
+            "n": 30
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1930,
+            "avg_rating": 3.988,
+            "n": 773
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1940,
+            "avg_rating": 4.015,
+            "n": 2492
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1950,
+            "avg_rating": 4.056,
+            "n": 5091
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1960,
+            "avg_rating": 3.754,
+            "n": 5952
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1970,
+            "avg_rating": 3.717,
+            "n": 10648
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1980,
+            "avg_rating": 3.541,
+            "n": 26201
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 1990,
+            "avg_rating": 3.472,
+            "n": 145694
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 2000,
+            "avg_rating": 3.468,
+            "n": 74656
+          },
+          {
+            "genre_group": "Thriller",
+            "decade": 2010,
+            "avg_rating": 3.551,
+            "n": 7399
+          }
+        ],
+        "min_cell": 1000,
+        "groups": 8,
+        "older_count": 7,
+        "cutoff_decade": 1970,
+        "best_decade": {
+          "Drama": {
+            "decade": 1940,
+            "avg": 3.973
+          },
+          "Comedy": {
+            "decade": 1930,
+            "avg": 4.055
+          },
+          "Action": {
+            "decade": 1950,
+            "avg": 4.016
+          },
+          "Thriller": {
+            "decade": 1950,
+            "avg": 4.056
+          },
+          "Adventure": {
+            "decade": 1950,
+            "avg": 3.937
+          },
+          "Romance": {
+            "decade": 1940,
+            "avg": 4.069
+          },
+          "Crime": {
+            "decade": 1970,
+            "avg": 4.064
+          },
+          "Other genres": {
+            "decade": 1940,
+            "avg": 3.806
+          }
+        }
+      },
+      "backing": [
+        {
+          "claim": "best-rated decade",
+          "values": {
+            "Drama": {
+              "decade": 1940,
+              "avg": 3.973
+            },
+            "Comedy": {
+              "decade": 1930,
+              "avg": 4.055
+            },
+            "Action": {
+              "decade": 1950,
+              "avg": 4.016
+            },
+            "Thriller": {
+              "decade": 1950,
+              "avg": 4.056
+            },
+            "Adventure": {
+              "decade": 1950,
+              "avg": 3.937
+            },
+            "Romance": {
+              "decade": 1940,
+              "avg": 4.069
+            },
+            "Crime": {
+              "decade": 1970,
+              "avg": 4.064
+            },
+            "Other genres": {
+              "decade": 1940,
+              "avg": 3.806
+            }
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Decade comes from the year in the title; titles without a year are left out of this card."
+      ]
+    },
+    {
+      "id": "M4",
+      "tier": "medium",
+      "headline": "Documentary titles are the least covered: 67.4% have never been rated, against 11.2% for IMAX",
+      "chart_type": "bar",
+      "advisor": "chart_advice_catalogue_genre.json",
+      "takeaway": "1,665 of 2,471 Documentary titles have no rating. Gaps cluster in niche genres, which is where content-based similarity has to stand in for collaborative filtering.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/medium/M4.sql"
+      ],
+      "query_text": "SELECT g.genre, g.genre_group,\n       COUNT(*) AS titles,\n       SUM(r.movieId IS NULL) AS never_rated,\n       ROUND(100.0 * SUM(r.movieId IS NULL) / COUNT(*), 1) AS pct_never\nFROM movie_genres g\nLEFT JOIN (SELECT DISTINCT movieId FROM dataset) r ON r.movieId = g.movieId\nWHERE g.genre <> '(no genres listed)'\nGROUP BY g.genre, g.genre_group\nHAVING COUNT(*) >= ?\nORDER BY pct_never DESC",
+      "data": {
+        "rows": [
+          {
+            "genre": "Documentary",
+            "genre_group": "Other genres",
+            "titles": 2471,
+            "never_rated": 1665,
+            "pct_never": 67.4
+          },
+          {
+            "genre": "Film-Noir",
+            "genre_group": "Other genres",
+            "titles": 330,
+            "never_rated": 175,
+            "pct_never": 53.0
+          },
+          {
+            "genre": "Western",
+            "genre_group": "Other genres",
+            "titles": 676,
+            "never_rated": 346,
+            "pct_never": 51.2
+          },
+          {
+            "genre": "Drama",
+            "genre_group": "Drama",
+            "titles": 13344,
+            "never_rated": 6429,
+            "pct_never": 48.2
+          },
+          {
+            "genre": "War",
+            "genre_group": "Other genres",
+            "titles": 1194,
+            "never_rated": 560,
+            "pct_never": 46.9
+          },
+          {
+            "genre": "Mystery",
+            "genre_group": "Other genres",
+            "titles": 1514,
+            "never_rated": 695,
+            "pct_never": 45.9
+          },
+          {
+            "genre": "Musical",
+            "genre_group": "Other genres",
+            "titles": 1036,
+            "never_rated": 470,
+            "pct_never": 45.4
+          },
+          {
+            "genre": "Romance",
+            "genre_group": "Romance",
+            "titles": 4127,
+            "never_rated": 1860,
+            "pct_never": 45.1
+          },
+          {
+            "genre": "Animation",
+            "genre_group": "Other genres",
+            "titles": 1027,
+            "never_rated": 457,
+            "pct_never": 44.5
+          },
+          {
+            "genre": "Horror",
+            "genre_group": "Other genres",
+            "titles": 2611,
+            "never_rated": 1161,
+            "pct_never": 44.5
+          },
+          {
+            "genre": "Crime",
+            "genre_group": "Crime",
+            "titles": 2939,
+            "never_rated": 1277,
+            "pct_never": 43.5
+          },
+          {
+            "genre": "Comedy",
+            "genre_group": "Comedy",
+            "titles": 8374,
+            "never_rated": 3579,
+            "pct_never": 42.7
+          },
+          {
+            "genre": "Action",
+            "genre_group": "Action",
+            "titles": 3520,
+            "never_rated": 1438,
+            "pct_never": 40.9
+          },
+          {
+            "genre": "Thriller",
+            "genre_group": "Thriller",
+            "titles": 4178,
+            "never_rated": 1626,
+            "pct_never": 38.9
+          },
+          {
+            "genre": "Fantasy",
+            "genre_group": "Other genres",
+            "titles": 1412,
+            "never_rated": 544,
+            "pct_never": 38.5
+          },
+          {
+            "genre": "Adventure",
+            "genre_group": "Adventure",
+            "titles": 2329,
+            "never_rated": 889,
+            "pct_never": 38.2
+          },
+          {
+            "genre": "Sci-Fi",
+            "genre_group": "Other genres",
+            "titles": 1743,
+            "never_rated": 647,
+            "pct_never": 37.1
+          },
+          {
+            "genre": "Children",
+            "genre_group": "Other genres",
+            "titles": 1139,
+            "never_rated": 410,
+            "pct_never": 36.0
+          },
+          {
+            "genre": "IMAX",
+            "genre_group": "Other genres",
+            "titles": 196,
+            "never_rated": 22,
+            "pct_never": 11.2
+          }
+        ],
+        "min_titles": 100
+      },
+      "backing": [
+        {
+          "claim": "least/most covered",
+          "values": {
+            "Documentary": 67.4,
+            "Film-Noir": 53.0,
+            "Western": 51.2,
+            "Drama": 48.2,
+            "War": 46.9,
+            "Mystery": 45.9,
+            "Musical": 45.4,
+            "Romance": 45.1,
+            "Animation": 44.5,
+            "Horror": 44.5,
+            "Crime": 43.5,
+            "Comedy": 42.7,
+            "Action": 40.9,
+            "Thriller": 38.9,
+            "Fantasy": 38.5,
+            "Adventure": 38.2,
+            "Sci-Fi": 37.1,
+            "Children": 36.0,
+            "IMAX": 11.2
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Genres with fewer than 100 catalogue titles are not shown; the (no genres listed) placeholder is excluded (97.6% unrated, see E4)."
+      ]
+    },
+    {
+      "id": "M5",
+      "tier": "medium",
+      "headline": "Among movies with at least 20 ratings, Drama has the highest median movie rating (3.62) and Action the lowest (3.26)",
+      "chart_type": "box",
+      "advisor": "chart_advice_movie_group_avg.json",
+      "takeaway": "The spread inside a group dwarfs the 0.36 gap between the highest and lowest medians: Drama movies run from 1.24 to 4.48. Genre narrows the field, but it does not pick the movie.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/medium/M5.py"
+      ],
+      "query_text": "def m5_movie_box(conn, min_n):\n    q = \"\"\"SELECT g.genre_group, s.movieId, s.avg_rating\n           FROM (SELECT movieId, AVG(rating) AS avg_rating, COUNT(*) AS n FROM dataset GROUP BY movieId) s\n           JOIN movie_genres g ON g.movieId = s.movieId\n           WHERE s.n >= ?\"\"\"\n    df = pd.read_sql(q, conn, params=(min_n,))\n    out = []\n    for g, s in df.groupby(\"genre_group\")[\"avg_rating\"]:\n        q1, med, q3 = s.quantile([0.25, 0.5, 0.75])\n        iqr = q3 - q1\n        out.append({\"genre_group\": g, \"movies\": int(s.size), \"q1\": round(q1, 3), \"median\": round(med, 3),\n                    \"q3\": round(q3, 3), \"lo\": round(max(s.min(), q1 - 1.5 * iqr), 3),\n                    \"hi\": round(min(s.max(), q3 + 1.5 * iqr), 3), \"min\": round(s.min(), 3), \"max\": round(s.max(), 3)})\n    return sorted(out, key=lambda r: -r[\"median\"])",
+      "data": {
+        "rows": [
+          {
+            "genre_group": "Drama",
+            "movies": 2423,
+            "q1": 3.31,
+            "median": 3.618,
+            "q3": 3.84,
+            "lo": 2.516,
+            "hi": 4.479,
+            "min": 1.242,
+            "max": 4.479
+          },
+          {
+            "genre_group": "Crime",
+            "movies": 694,
+            "q1": 3.133,
+            "median": 3.524,
+            "q3": 3.811,
+            "lo": 2.115,
+            "hi": 4.479,
+            "min": 0.846,
+            "max": 4.479
+          },
+          {
+            "genre_group": "Romance",
+            "movies": 968,
+            "q1": 3.125,
+            "median": 3.477,
+            "q3": 3.776,
+            "lo": 2.148,
+            "hi": 4.479,
+            "min": 0.846,
+            "max": 4.479
+          },
+          {
+            "genre_group": "Other genres",
+            "movies": 3292,
+            "q1": 2.979,
+            "median": 3.4,
+            "q3": 3.735,
+            "lo": 1.846,
+            "hi": 4.37,
+            "min": 0.944,
+            "max": 4.37
+          },
+          {
+            "genre_group": "Thriller",
+            "movies": 1170,
+            "q1": 2.984,
+            "median": 3.363,
+            "q3": 3.688,
+            "lo": 1.928,
+            "hi": 4.37,
+            "min": 1.208,
+            "max": 4.37
+          },
+          {
+            "genre_group": "Adventure",
+            "movies": 766,
+            "q1": 2.978,
+            "median": 3.355,
+            "q3": 3.653,
+            "lo": 1.965,
+            "hi": 4.259,
+            "min": 0.944,
+            "max": 4.259
+          },
+          {
+            "genre_group": "Comedy",
+            "movies": 1990,
+            "q1": 2.875,
+            "median": 3.299,
+            "q3": 3.648,
+            "lo": 1.715,
+            "hi": 4.452,
+            "min": 0.846,
+            "max": 4.452
+          },
+          {
+            "genre_group": "Action",
+            "movies": 1053,
+            "q1": 2.873,
+            "median": 3.26,
+            "q3": 3.606,
+            "lo": 1.772,
+            "hi": 4.353,
+            "min": 1.068,
+            "max": 4.353
+          }
+        ],
+        "min_n": 20,
+        "median_gap": 0.36,
+        "top_range": 3.24
+      },
+      "backing": [
+        {
+          "claim": "highest/lowest median",
+          "values": {
+            "Drama": 3.618,
+            "Crime": 3.524,
+            "Romance": 3.477,
+            "Other genres": 3.4,
+            "Thriller": 3.363,
+            "Adventure": 3.355,
+            "Comedy": 3.299,
+            "Action": 3.26
+          }
+        },
+        {
+          "claim": "spread wider than gap",
+          "values": {
+            "median_gap": 0.36,
+            "top_group_range": 3.24
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "True medians from pandas. Whiskers at 1.5 x IQR; min and max shown as dots. Outliers kept."
+      ]
+    },
+    {
+      "id": "C1",
+      "tier": "complex",
+      "headline": "The most-rated 20% of movies collect 87.4% of all ratings",
+      "chart_type": "pareto",
+      "advisor": "chart_advice_movie_pareto.json",
+      "takeaway": "The least-rated half of the 14,026 rated movies shares just 2.0% of ratings, and the bottom tenth has at most 1 each. Only 5,159 movies reach the 20-rating floor used for stable item statistics.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/complex/C1.sql"
+      ],
+      "query_text": "WITH per_movie AS (\n    SELECT movieId, COUNT(*) AS n FROM dataset GROUP BY movieId\n),\nranked AS (\n    SELECT movieId, n,\n           ROW_NUMBER() OVER (ORDER BY n DESC, movieId) AS rn,\n           COUNT(*) OVER () AS movies\n    FROM per_movie\n)\nSELECT CAST((rn - 1) / (movies / 10.0) AS INTEGER) + 1 AS decile,\n       COUNT(*) AS movies,\n       SUM(n) AS ratings,\n       MIN(n) AS min_n,\n       MAX(n) AS max_n\nFROM ranked\nGROUP BY 1\nORDER BY 1",
+      "data": {
+        "rows": [
+          {
+            "decile": 1,
+            "movies": 1403,
+            "ratings": 765062,
+            "min_n": 180,
+            "max_n": 3498,
+            "share_pct": 72.96,
+            "cum_pct": 72.96
+          },
+          {
+            "decile": 2,
+            "movies": 1403,
+            "ratings": 151515,
+            "min_n": 64,
+            "max_n": 180,
+            "share_pct": 14.45,
+            "cum_pct": 87.41
+          },
+          {
+            "decile": 3,
+            "movies": 1402,
+            "ratings": 62500,
+            "min_n": 30,
+            "max_n": 64,
+            "share_pct": 5.96,
+            "cum_pct": 93.37
+          },
+          {
+            "decile": 4,
+            "movies": 1403,
+            "ratings": 31179,
+            "min_n": 16,
+            "max_n": 30,
+            "share_pct": 2.97,
+            "cum_pct": 96.35
+          },
+          {
+            "decile": 5,
+            "movies": 1402,
+            "ratings": 17004,
+            "min_n": 9,
+            "max_n": 16,
+            "share_pct": 1.62,
+            "cum_pct": 97.97
+          },
+          {
+            "decile": 6,
+            "movies": 1403,
+            "ratings": 9596,
+            "min_n": 5,
+            "max_n": 9,
+            "share_pct": 0.92,
+            "cum_pct": 98.88
+          },
+          {
+            "decile": 7,
+            "movies": 1403,
+            "ratings": 5460,
+            "min_n": 3,
+            "max_n": 5,
+            "share_pct": 0.52,
+            "cum_pct": 99.4
+          },
+          {
+            "decile": 8,
+            "movies": 1402,
+            "ratings": 3207,
+            "min_n": 2,
+            "max_n": 3,
+            "share_pct": 0.31,
+            "cum_pct": 99.71
+          },
+          {
+            "decile": 9,
+            "movies": 1403,
+            "ratings": 1650,
+            "min_n": 1,
+            "max_n": 2,
+            "share_pct": 0.16,
+            "cum_pct": 99.87
+          },
+          {
+            "decile": 10,
+            "movies": 1402,
+            "ratings": 1402,
+            "min_n": 1,
+            "max_n": 1,
+            "share_pct": 0.13,
+            "cum_pct": 100.0
+          }
+        ],
+        "top_share_members_pct": 20,
+        "top20_share": 87.4,
+        "bottom50_share": 2.0,
+        "rated_movies": 14026,
+        "stable_movies": 5159,
+        "min_n": 20,
+        "advisor_concentration": {
+          "key": "popularity_decile",
+          "measure": "n_ratings",
+          "members": 10,
+          "total": 1048575.0,
+          "top_10_share_percent": 100.0,
+          "top_20_percent_of_members_share_percent": 87.4,
+          "top_20_percent_of_members_count": 2
+        }
+      },
+      "backing": [
+        {
+          "claim": "most-rated",
+          "values": {
+            "top_2_deciles_cum_pct": 87.41,
+            "advisor_top_20_percent_share": 87.4
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "C2",
+      "tier": "complex",
+      "headline": "Genre group explains only 0.66% of rating variance (eta squared 0.0066)",
+      "chart_type": "bar",
+      "advisor": "chart_advice_group_rating.json",
+      "takeaway": "Group means span 3.43 (Comedy) to 3.68 (Crime) around a grand mean of 3.54. Genre alone is a weak signal, which is the case for personalised models over genre charts.",
+      "lang": "SQL + Python",
+      "query_files": [
+        "01_queries/complex/C2.sql",
+        "01_queries/complex/C2.py"
+      ],
+      "query_text": "SELECT genre_group,\n       COUNT(*) AS n,\n       SUM(rating) AS s,\n       SUM(rating * rating) AS ss\nFROM clean_genre\nGROUP BY genre_group\n\ndef c2_eta_squared(rows):\n    n = sum(r[\"n\"] for r in rows)\n    s = sum(r[\"s\"] for r in rows)\n    ss = sum(r[\"ss\"] for r in rows)\n    grand = s / n\n    ss_total = ss - n * grand ** 2\n    ss_between = sum(r[\"n\"] * (r[\"s\"] / r[\"n\"] - grand) ** 2 for r in rows)\n    groups = sorted(({\"genre_group\": r[\"genre_group\"], \"n\": r[\"n\"], \"mean\": round(r[\"s\"] / r[\"n\"], 3)}\n                     for r in rows), key=lambda r: -r[\"mean\"])\n    return {\"eta2\": round(ss_between / ss_total, 4), \"eta2_pct\": round(100 * ss_between / ss_total, 2),\n            \"grand_mean\": round(grand, 3), \"groups\": groups, \"n\": n}",
+      "data": {
+        "eta2": 0.0066,
+        "eta2_pct": 0.66,
+        "grand_mean": 3.537,
+        "groups": [
+          {
+            "genre_group": "Crime",
+            "n": 171866,
+            "mean": 3.684
+          },
+          {
+            "genre_group": "Drama",
+            "n": 461704,
+            "mean": 3.678
+          },
+          {
+            "genre_group": "Romance",
+            "n": 201209,
+            "mean": 3.546
+          },
+          {
+            "genre_group": "Other genres",
+            "n": 754805,
+            "mean": 3.523
+          },
+          {
+            "genre_group": "Thriller",
+            "n": 278937,
+            "mean": 3.512
+          },
+          {
+            "genre_group": "Adventure",
+            "n": 230358,
+            "mean": 3.507
+          },
+          {
+            "genre_group": "Action",
+            "n": 293934,
+            "mean": 3.451
+          },
+          {
+            "genre_group": "Comedy",
+            "n": 395994,
+            "mean": 3.432
+          }
+        ],
+        "n": 2788807
+      },
+      "backing": [
+        {
+          "claim": "only",
+          "values": {
+            "eta2": 0.0066
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Computed on rating x genre rows: a multi-genre movie's rating counts once per group it belongs to."
+      ]
+    },
+    {
+      "id": "C3",
+      "tier": "complex",
+      "headline": "The Shawshank Redemption tops the all-user chart in Crime, weighted score 4.44",
+      "chart_type": "table",
+      "advisor": "chart_advice_genre_rating.json",
+      "takeaway": "Each score blends a movie's average with the global mean of 3.53 using a prior of 100 ratings, so small-sample films cannot top a genre on a handful of votes. The Shawshank Redemption wins 2 genres, a reminder that one chart serves everybody the same picks.",
+      "lang": "SQL",
+      "query_files": [
+        "01_queries/complex/C3.sql"
+      ],
+      "query_text": "WITH s AS (\n    SELECT movieId, COUNT(*) AS v, AVG(rating) AS r FROM dataset GROUP BY movieId\n),\nc AS (SELECT AVG(rating) AS c FROM dataset),\nw AS (\n    SELECT g.genre, g.genre_group, m.title, m.year, s.v, s.r,\n           (s.v * s.r + ? * c.c) / (s.v + ?) AS wr, c.c AS global_mean\n    FROM s\n    JOIN movie_genres g ON g.movieId = s.movieId\n    JOIN movies_clean m ON m.movieId = s.movieId\n    CROSS JOIN c\n),\nranked AS (\n    SELECT *, ROW_NUMBER() OVER (PARTITION BY genre ORDER BY wr DESC, v DESC) AS rk FROM w\n)\nSELECT genre, genre_group, title, year, v AS n_ratings,\n       ROUND(r, 3) AS avg_rating, ROUND(wr, 3) AS weighted, ROUND(global_mean, 3) AS global_mean\nFROM ranked\nWHERE rk = 1 AND genre <> '(no genres listed)'\nORDER BY weighted DESC",
+      "data": {
+        "rows": [
+          {
+            "genre": "Crime",
+            "genre_group": "Crime",
+            "title": "Shawshank Redemption, The (1994)",
+            "year": 1994,
+            "n_ratings": 3216,
+            "avg_rating": 4.47,
+            "weighted": 4.442,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Drama",
+            "genre_group": "Drama",
+            "title": "Shawshank Redemption, The (1994)",
+            "year": 1994,
+            "n_ratings": 3216,
+            "avg_rating": 4.47,
+            "weighted": 4.442,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Mystery",
+            "genre_group": "Other genres",
+            "title": "Usual Suspects, The (1995)",
+            "year": 1995,
+            "n_ratings": 2490,
+            "avg_rating": 4.37,
+            "weighted": 4.338,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Thriller",
+            "genre_group": "Thriller",
+            "title": "Usual Suspects, The (1995)",
+            "year": 1995,
+            "n_ratings": 2490,
+            "avg_rating": 4.37,
+            "weighted": 4.338,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "War",
+            "genre_group": "Other genres",
+            "title": "Schindler's List (1993)",
+            "year": 1993,
+            "n_ratings": 2598,
+            "avg_rating": 4.296,
+            "weighted": 4.267,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Romance",
+            "genre_group": "Romance",
+            "title": "Casablanca (1942)",
+            "year": 1942,
+            "n_ratings": 1282,
+            "avg_rating": 4.269,
+            "weighted": 4.215,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Action",
+            "genre_group": "Action",
+            "title": "Fight Club (1999)",
+            "year": 1999,
+            "n_ratings": 2085,
+            "avg_rating": 4.219,
+            "weighted": 4.188,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "IMAX",
+            "genre_group": "Other genres",
+            "title": "Dark Knight, The (2008)",
+            "year": 2008,
+            "n_ratings": 1031,
+            "avg_rating": 4.243,
+            "weighted": 4.18,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Adventure",
+            "genre_group": "Adventure",
+            "title": "Raiders of the Lost Ark (Indiana Jones and the Raiders of the Lost Ark) (1981)",
+            "year": 1981,
+            "n_ratings": 2289,
+            "avg_rating": 4.206,
+            "weighted": 4.178,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Comedy",
+            "genre_group": "Comedy",
+            "title": "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb (1964)",
+            "year": 1964,
+            "n_ratings": 1257,
+            "avg_rating": 4.22,
+            "weighted": 4.169,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Sci-Fi",
+            "genre_group": "Other genres",
+            "title": "Star Wars: Episode IV - A New Hope (1977)",
+            "year": 1977,
+            "n_ratings": 2874,
+            "avg_rating": 4.189,
+            "weighted": 4.167,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Horror",
+            "genre_group": "Other genres",
+            "title": "Silence of the Lambs, The (1991)",
+            "year": 1991,
+            "n_ratings": 3247,
+            "avg_rating": 4.185,
+            "weighted": 4.165,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Animation",
+            "genre_group": "Other genres",
+            "title": "Spirited Away (Sen to Chihiro no kamikakushi) (2001)",
+            "year": 2001,
+            "n_ratings": 712,
+            "avg_rating": 4.231,
+            "weighted": 4.145,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Fantasy",
+            "genre_group": "Other genres",
+            "title": "Spirited Away (Sen to Chihiro no kamikakushi) (2001)",
+            "year": 2001,
+            "n_ratings": 712,
+            "avg_rating": 4.231,
+            "weighted": 4.145,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Film-Noir",
+            "genre_group": "Other genres",
+            "title": "Chinatown (1974)",
+            "year": 1974,
+            "n_ratings": 813,
+            "avg_rating": 4.185,
+            "weighted": 4.113,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Children",
+            "genre_group": "Other genres",
+            "title": "Wallace & Gromit: A Close Shave (1995)",
+            "year": 1995,
+            "n_ratings": 622,
+            "avg_rating": 4.176,
+            "weighted": 4.086,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Western",
+            "genre_group": "Other genres",
+            "title": "Good, the Bad and the Ugly, The (Buono, il brutto, il cattivo, Il) (1966)",
+            "year": 1966,
+            "n_ratings": 761,
+            "avg_rating": 4.155,
+            "weighted": 4.082,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Musical",
+            "genre_group": "Other genres",
+            "title": "Duck Soup (1933)",
+            "year": 1933,
+            "n_ratings": 280,
+            "avg_rating": 4.218,
+            "weighted": 4.037,
+            "global_mean": 3.529
+          },
+          {
+            "genre": "Documentary",
+            "genre_group": "Other genres",
+            "title": "When We Were Kings (1996)",
+            "year": 1996,
+            "n_ratings": 197,
+            "avg_rating": 4.249,
+            "weighted": 4.006,
+            "global_mean": 3.529
+          }
+        ],
+        "prior_m": 100,
+        "top_repeat_wins": 2
+      },
+      "backing": [
+        {
+          "claim": "tops",
+          "values": {
+            "Crime": [
+              "Shawshank Redemption, The (1994)",
+              4.442
+            ],
+            "Drama": [
+              "Shawshank Redemption, The (1994)",
+              4.442
+            ],
+            "Mystery": [
+              "Usual Suspects, The (1995)",
+              4.338
+            ],
+            "Thriller": [
+              "Usual Suspects, The (1995)",
+              4.338
+            ],
+            "War": [
+              "Schindler's List (1993)",
+              4.267
+            ],
+            "Romance": [
+              "Casablanca (1942)",
+              4.215
+            ],
+            "Action": [
+              "Fight Club (1999)",
+              4.188
+            ],
+            "IMAX": [
+              "Dark Knight, The (2008)",
+              4.18
+            ],
+            "Adventure": [
+              "Raiders of the Lost Ark (Indiana Jones and the Raiders of the Lost Ark) (1981)",
+              4.178
+            ],
+            "Comedy": [
+              "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb (1964)",
+              4.169
+            ],
+            "Sci-Fi": [
+              "Star Wars: Episode IV - A New Hope (1977)",
+              4.167
+            ],
+            "Horror": [
+              "Silence of the Lambs, The (1991)",
+              4.165
+            ],
+            "Animation": [
+              "Spirited Away (Sen to Chihiro no kamikakushi) (2001)",
+              4.145
+            ],
+            "Fantasy": [
+              "Spirited Away (Sen to Chihiro no kamikakushi) (2001)",
+              4.145
+            ],
+            "Film-Noir": [
+              "Chinatown (1974)",
+              4.113
+            ],
+            "Children": [
+              "Wallace & Gromit: A Close Shave (1995)",
+              4.086
+            ],
+            "Western": [
+              "Good, the Bad and the Ugly, The (Buono, il brutto, il cattivo, Il) (1966)",
+              4.082
+            ],
+            "Musical": [
+              "Duck Soup (1933)",
+              4.037
+            ],
+            "Documentary": [
+              "When We Were Kings (1996)",
+              4.006
+            ]
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "C4",
+      "tier": "complex",
+      "headline": "Raters of Pulp Fiction score Reservoir Dogs most similarly (r = 0.54 across 1,265 shared raters)",
+      "chart_type": "table",
+      "advisor": "chart_advice_similar_movies.json",
+      "takeaway": "The ten closest rating neighbours have a mean genre cosine of 0.63 with the seed, against 0.41 for all 963 candidates. So rating neighbours share more genres than a typical candidate, and every one of the ten shares at least one genre.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/complex/C4.py"
+      ],
+      "query_text": "def c4_item_item(conn, min_co, min_n):\n    df = pd.read_sql(\"\"\"SELECT d.userId, d.movieId, d.rating FROM dataset d\n                        JOIN (SELECT movieId FROM dataset GROUP BY movieId HAVING COUNT(*) >= ?) k\n                          ON k.movieId = d.movieId\"\"\", conn, params=(min_n,))\n    seed = int(df.groupby(\"movieId\").size().idxmax())\n    M = df.pivot_table(index=\"userId\", columns=\"movieId\", values=\"rating\")\n    s = M[seed]\n    mask_s = s.notna().values[:, None]\n    X = M.values\n    obs = ~np.isnan(X) & mask_s\n    n_co = obs.sum(0)\n    sv = np.where(mask_s, s.values[:, None], 0.0)\n    xv = np.where(obs, X, 0.0)\n    sv_o = np.where(obs, sv, 0.0)\n    with np.errstate(invalid=\"ignore\", divide=\"ignore\"):\n        ms_, mx = sv_o.sum(0) / n_co, xv.sum(0) / n_co\n        cov = (np.where(obs, (sv_o - ms_) * (xv - mx), 0)).sum(0)\n        den = np.sqrt((np.where(obs, (sv_o - ms_) ** 2, 0)).sum(0) * (np.where(obs, (xv - mx) ** 2, 0)).sum(0))\n        r = cov / den\n    res = pd.DataFrame({\"movieId\": M.columns, \"r\": r, \"n_co\": n_co})\n    res = res[(res.movieId != seed) & (res.n_co >= min_co)].dropna()\n    genres = pd.read_sql(\"SELECT movieId, title, genres FROM movies_clean\", conn).set_index(\"movieId\")\n    from sklearn.preprocessing import MultiLabelBinarizer\n    mlb = MultiLabelBinarizer()\n    G = pd.DataFrame(mlb.fit_transform(genres[\"genres\"].str.split(\"|\")), index=genres.index)\n    gs = G.loc[seed].values\n    Gc = G.loc[res.movieId].values\n    res[\"genre_cosine\"] = (Gc @ gs) / (np.linalg.norm(Gc, axis=1) * np.linalg.norm(gs))\n    res[\"title\"] = genres.loc[res.movieId, \"title\"].values\n    top = res.sort_values(\"r\", ascending=False).head(10)\n    return {\"seed_id\": seed, \"seed_title\": genres.loc[seed, \"title\"], \"seed_genres\": genres.loc[seed, \"genres\"],\n            \"seed_n\": int(s.notna().sum()), \"candidates\": int(len(res)),\n            \"top\": [{\"title\": t, \"r\": round(float(a), 3), \"n_co\": int(b), \"genre_cosine\": round(float(c), 3)}\n                    for t, a, b, c in zip(top.title, top.r, top.n_co, top.genre_cosine)],\n            \"top_mean_cosine\": round(float(top.genre_cosine.mean()), 3),\n            \"all_mean_cosine\": round(float(res.genre_cosine.mean()), 3),\n            \"top_zero_overlap\": int((top.genre_cosine == 0).sum())}",
+      "data": {
+        "seed_id": 296,
+        "seed_title": "Pulp Fiction (1994)",
+        "seed_genres": "Comedy|Crime|Drama|Thriller",
+        "seed_n": 3498,
+        "candidates": 963,
+        "top": [
+          {
+            "title": "Reservoir Dogs (1992)",
+            "r": 0.536,
+            "n_co": 1265,
+            "genre_cosine": 0.577
+          },
+          {
+            "title": "Kill Bill: Vol. 2 (2004)",
+            "r": 0.399,
+            "n_co": 849,
+            "genre_cosine": 0.577
+          },
+          {
+            "title": "Fight Club (1999)",
+            "r": 0.381,
+            "n_co": 1497,
+            "genre_cosine": 0.75
+          },
+          {
+            "title": "Sin City (2005)",
+            "r": 0.376,
+            "n_co": 719,
+            "genre_cosine": 0.447
+          },
+          {
+            "title": "American Psycho (2000)",
+            "r": 0.376,
+            "n_co": 363,
+            "genre_cosine": 0.5
+          },
+          {
+            "title": "Kill Bill: Vol. 1 (2003)",
+            "r": 0.371,
+            "n_co": 961,
+            "genre_cosine": 0.577
+          },
+          {
+            "title": "Adaptation (2002)",
+            "r": 0.364,
+            "n_co": 411,
+            "genre_cosine": 0.577
+          },
+          {
+            "title": "Fargo (1996)",
+            "r": 0.344,
+            "n_co": 1667,
+            "genre_cosine": 1.0
+          },
+          {
+            "title": "From Dusk Till Dawn (1996)",
+            "r": 0.34,
+            "n_co": 537,
+            "genre_cosine": 0.5
+          },
+          {
+            "title": "Clockwork Orange, A (1971)",
+            "r": 0.338,
+            "n_co": 987,
+            "genre_cosine": 0.75
+          }
+        ],
+        "top_mean_cosine": 0.626,
+        "all_mean_cosine": 0.407,
+        "top_zero_overlap": 0,
+        "min_co": 200,
+        "min_n": 20
+      },
+      "backing": [
+        {
+          "claim": "most similarly",
+          "values": {
+            "Reservoir Dogs (1992)": 0.536,
+            "Kill Bill: Vol. 2 (2004)": 0.399,
+            "Fight Club (1999)": 0.381,
+            "Sin City (2005)": 0.376,
+            "American Psycho (2000)": 0.376,
+            "Kill Bill: Vol. 1 (2003)": 0.371,
+            "Adaptation (2002)": 0.364,
+            "Fargo (1996)": 0.344,
+            "From Dusk Till Dawn (1996)": 0.34,
+            "Clockwork Orange, A (1971)": 0.338
+          }
+        },
+        {
+          "claim": "more genres / every one shares",
+          "values": {
+            "top_mean_cosine": 0.626,
+            "all_mean_cosine": 0.407,
+            "top_zero_overlap": 0
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Seed is the most-rated movie in the file (3,498 ratings). Pearson r on co-rating users, movies with at least 20 ratings and 200 shared raters.",
+        "The advisor lists only kpi_card and table for this ten-row result, so it is drawn as a table with in-cell value bars."
+      ]
+    },
+    {
+      "id": "C5",
+      "tier": "complex",
+      "headline": "Release year is the strongest correlate of a movie's average rating, ahead of Popularity (log10 ratings)",
+      "chart_type": "driver_bar",
+      "advisor": "chart_advice_movie_drivers.json",
+      "takeaway": "A gradient-boosted model over 5,159 movies explains R2 = 0.47 (sd 0.01) of held-out variance across 5 folds. Importance is the drop in held-out R2 when a feature is shuffled; it shows association, not cause.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/complex/C5.py"
+      ],
+      "query_text": "def c5_drivers(conn, min_n, folds):\n    from sklearn.ensemble import HistGradientBoostingRegressor\n    from sklearn.inspection import permutation_importance\n    from sklearn.model_selection import KFold\n    df = pd.read_sql(\"\"\"SELECT m.movieId, m.genres, m.year, s.n, s.avg_rating\n                        FROM (SELECT movieId, COUNT(*) AS n, AVG(rating) AS avg_rating FROM dataset GROUP BY movieId) s\n                        JOIN movies_clean m ON m.movieId = s.movieId WHERE s.n >= ?\"\"\", conn, params=(min_n,))\n    X = df[\"genres\"].str.get_dummies(\"|\").drop(columns=[\"(no genres listed)\"], errors=\"ignore\")\n    X.insert(0, \"Number of genres\", X.sum(1))\n    X.insert(0, \"Release year\", df[\"year\"])\n    X.insert(0, \"Popularity (log10 ratings)\", np.log10(df[\"n\"]))\n    y = df[\"avg_rating\"].values\n    imps, r2s = [], []\n    for tr, te in KFold(folds, shuffle=True, random_state=42).split(X):\n        mdl = HistGradientBoostingRegressor(random_state=42).fit(X.iloc[tr], y[tr])\n        r2s.append(mdl.score(X.iloc[te], y[te]))\n        pi = permutation_importance(mdl, X.iloc[te], y[te], n_repeats=5, random_state=42)\n        imps.append(pi.importances_mean)\n    imp = pd.Series(np.mean(imps, 0), index=X.columns).sort_values(ascending=False)\n    sd = pd.Series(np.std(imps, 0), index=X.columns)\n    return {\"movies\": int(len(df)), \"r2_mean\": round(float(np.mean(r2s)), 3), \"r2_sd\": round(float(np.std(r2s)), 3),\n            \"drivers\": [{\"feature\": f, \"importance\": round(float(v), 4), \"sd\": round(float(sd[f]), 4)}\n                        for f, v in imp.head(10).items()]}",
+      "data": {
+        "movies": 5159,
+        "r2_mean": 0.468,
+        "r2_sd": 0.015,
+        "drivers": [
+          {
+            "feature": "Release year",
+            "importance": 0.4062,
+            "sd": 0.0228
+          },
+          {
+            "feature": "Popularity (log10 ratings)",
+            "importance": 0.2972,
+            "sd": 0.0157
+          },
+          {
+            "feature": "Drama",
+            "importance": 0.1945,
+            "sd": 0.0169
+          },
+          {
+            "feature": "Documentary",
+            "importance": 0.0562,
+            "sd": 0.0135
+          },
+          {
+            "feature": "Horror",
+            "importance": 0.0414,
+            "sd": 0.0118
+          },
+          {
+            "feature": "Action",
+            "importance": 0.0382,
+            "sd": 0.0043
+          },
+          {
+            "feature": "Children",
+            "importance": 0.0304,
+            "sd": 0.0043
+          },
+          {
+            "feature": "Animation",
+            "importance": 0.03,
+            "sd": 0.0029
+          },
+          {
+            "feature": "Comedy",
+            "importance": 0.0142,
+            "sd": 0.0045
+          },
+          {
+            "feature": "Number of genres",
+            "importance": 0.0123,
+            "sd": 0.0029
+          }
+        ],
+        "folds": 5,
+        "min_n": 20
+      },
+      "backing": [
+        {
+          "claim": "strongest",
+          "values": {
+            "Release year": 0.4062,
+            "Popularity (log10 ratings)": 0.2972,
+            "Drama": 0.1945,
+            "Documentary": 0.0562,
+            "Horror": 0.0414,
+            "Action": 0.0382,
+            "Children": 0.0304,
+            "Animation": 0.03,
+            "Comedy": 0.0142,
+            "Number of genres": 0.0123
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "random_state=42; permutation importance on held-out folds, n_repeats=5; genre flags are the 19 MovieLens genres."
+      ]
+    },
+    {
+      "id": "V1",
+      "tier": "very",
+      "headline": "For user 1, the hybrid score and SVD agree on the best movie in 6 of 19 genres",
+      "chart_type": "table",
+      "advisor": "chart_advice_picks.json",
+      "takeaway": "The hybrid score (0.7 x movie average + 0.3 x the user's own genre mean) leans on crowd favourites, while SVD ranks the 4,987 unseen candidates by this user's latent taste. The user has rated nothing in 2 genres, where the hybrid falls back on their overall mean of 3.74.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/very/V1.py"
+      ],
+      "query_text": "def v1_personal_picks(conn, user, w_movie, w_user, min_n):\n    from surprise import SVD\n    df, data = load_surprise(conn)\n    algo = SVD(random_state=42).fit(data.build_full_trainset())\n    mg = pd.read_sql(\"SELECT movieId, genre, genre_group FROM movie_genres WHERE genre <> '(no genres listed)'\", conn)\n    titles = pd.read_sql(\"SELECT movieId, title FROM movies_clean\", conn).set_index(\"movieId\")[\"title\"]\n    stats = df.groupby(\"movieId\")[\"rating\"].agg(n=\"size\", avg=\"mean\")\n    seen = set(df.loc[df.userId == user, \"movieId\"])\n    mine = df[df.userId == user].merge(mg, on=\"movieId\")\n    genre_mean = mine.groupby(\"genre\")[\"rating\"].mean()\n    user_mean = df.loc[df.userId == user, \"rating\"].mean()\n    cand = mg[mg.movieId.isin(stats.index[stats.n >= min_n]) & ~mg.movieId.isin(seen)].copy()\n    cand[\"avg\"] = cand.movieId.map(stats[\"avg\"])\n    cand[\"user_genre_mean\"] = cand.genre.map(genre_mean).fillna(user_mean)\n    cand[\"hybrid\"] = w_movie * cand[\"avg\"] + w_user * cand[\"user_genre_mean\"]\n    cand[\"svd\"] = [algo.predict(user, m).est for m in cand.movieId]\n    out = []\n    for g, c in cand.groupby(\"genre\"):\n        h = c.sort_values([\"hybrid\", \"movieId\"], ascending=[False, True]).iloc[0]\n        s = c.sort_values([\"svd\", \"movieId\"], ascending=[False, True]).iloc[0]\n        out.append({\"genre\": g, \"genre_group\": h.genre_group, \"user_rated_in_genre\": int((mine.genre == g).sum()),\n                    \"user_genre_mean\": round(float(h.user_genre_mean), 3),\n                    \"hybrid_pick\": titles[h.movieId], \"hybrid_score\": round(float(h.hybrid), 3),\n                    \"hybrid_pick_svd\": round(float(h.svd), 3),\n                    \"svd_pick\": titles[s.movieId], \"svd_score\": round(float(s.svd), 3),\n                    \"agree\": bool(h.movieId == s.movieId)})\n    out.sort(key=lambda r: -r[\"hybrid_score\"])\n    return {\"user\": user, \"user_ratings\": len(seen), \"user_mean\": round(float(user_mean), 3),\n            \"candidates\": int(cand.movieId.nunique()), \"picks\": out,\n            \"agree_count\": sum(r[\"agree\"] for r in out), \"genres\": len(out),\n            \"unrated_genres\": sum(r[\"user_rated_in_genre\"] == 0 for r in out)}",
+      "data": {
+        "user": 1,
+        "user_ratings": 175,
+        "user_mean": 3.743,
+        "candidates": 4987,
+        "picks": [
+          {
+            "genre": "Romance",
+            "genre_group": "Romance",
+            "user_rated_in_genre": 11,
+            "user_genre_mean": 3.955,
+            "hybrid_pick": "Decalogue, The (Dekalog) (1989)",
+            "hybrid_score": 4.322,
+            "hybrid_pick_svd": 4.676,
+            "svd_pick": "Decalogue, The (Dekalog) (1989)",
+            "svd_score": 4.676,
+            "agree": true
+          },
+          {
+            "genre": "Crime",
+            "genre_group": "Crime",
+            "user_rated_in_genre": 21,
+            "user_genre_mean": 3.81,
+            "hybrid_pick": "Decalogue, The (Dekalog) (1989)",
+            "hybrid_score": 4.278,
+            "hybrid_pick_svd": 4.676,
+            "svd_pick": "Decalogue, The (Dekalog) (1989)",
+            "svd_score": 4.676,
+            "agree": true
+          },
+          {
+            "genre": "Drama",
+            "genre_group": "Drama",
+            "user_rated_in_genre": 43,
+            "user_genre_mean": 3.767,
+            "hybrid_pick": "Decalogue, The (Dekalog) (1989)",
+            "hybrid_score": 4.266,
+            "hybrid_pick_svd": 4.676,
+            "svd_pick": "Decalogue, The (Dekalog) (1989)",
+            "svd_score": 4.676,
+            "agree": true
+          },
+          {
+            "genre": "IMAX",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 2,
+            "user_genre_mean": 4.25,
+            "hybrid_pick": "Dark Knight, The (2008)",
+            "hybrid_score": 4.245,
+            "hybrid_pick_svd": 4.145,
+            "svd_pick": "Avengers, The (2012)",
+            "svd_score": 4.394,
+            "agree": false
+          },
+          {
+            "genre": "Comedy",
+            "genre_group": "Comedy",
+            "user_rated_in_genre": 41,
+            "user_genre_mean": 3.732,
+            "hybrid_pick": "Day for Night (La Nuit Américaine) (1973)",
+            "hybrid_score": 4.236,
+            "hybrid_pick_svd": 4.567,
+            "svd_pick": "Day for Night (La Nuit Américaine) (1973)",
+            "svd_score": 4.567,
+            "agree": true
+          },
+          {
+            "genre": "Action",
+            "genre_group": "Action",
+            "user_rated_in_genre": 66,
+            "user_genre_mean": 3.727,
+            "hybrid_pick": "Band of Brothers (2001)",
+            "hybrid_score": 4.165,
+            "hybrid_pick_svd": 4.33,
+            "svd_pick": "Serenity (2005)",
+            "svd_score": 4.458,
+            "agree": false
+          },
+          {
+            "genre": "Documentary",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 0,
+            "user_genre_mean": 3.743,
+            "hybrid_pick": "Cosmos (1980)",
+            "hybrid_score": 4.16,
+            "hybrid_pick_svd": 4.206,
+            "svd_pick": "Anne Frank Remembered (1995)",
+            "svd_score": 4.573,
+            "agree": false
+          },
+          {
+            "genre": "War",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 9,
+            "user_genre_mean": 3.667,
+            "hybrid_pick": "Band of Brothers (2001)",
+            "hybrid_score": 4.147,
+            "hybrid_pick_svd": 4.33,
+            "svd_pick": "Red Sorghum (Hong gao liang) (1987)",
+            "svd_score": 4.409,
+            "agree": false
+          },
+          {
+            "genre": "Sci-Fi",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 40,
+            "user_genre_mean": 3.712,
+            "hybrid_pick": "Black Mirror (2011)",
+            "hybrid_score": 4.144,
+            "hybrid_pick_svd": 4.475,
+            "svd_pick": "Black Mirror (2011)",
+            "svd_score": 4.475,
+            "agree": true
+          },
+          {
+            "genre": "Fantasy",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 69,
+            "user_genre_mean": 3.79,
+            "hybrid_pick": "After Life (Wandafuru raifu) (1998)",
+            "hybrid_score": 4.14,
+            "hybrid_pick_svd": 4.327,
+            "svd_pick": "How to Train Your Dragon (2010)",
+            "svd_score": 4.34,
+            "agree": false
+          },
+          {
+            "genre": "Mystery",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 18,
+            "user_genre_mean": 3.611,
+            "hybrid_pick": "After the Thin Man (1936)",
+            "hybrid_score": 4.133,
+            "hybrid_pick_svd": 4.112,
+            "svd_pick": "To Catch a Thief (1955)",
+            "svd_score": 4.435,
+            "agree": false
+          },
+          {
+            "genre": "Adventure",
+            "genre_group": "Adventure",
+            "user_rated_in_genre": 73,
+            "user_genre_mean": 3.788,
+            "hybrid_pick": "City of God (Cidade de Deus) (2002)",
+            "hybrid_score": 4.117,
+            "hybrid_pick_svd": 3.994,
+            "svd_pick": "Serenity (2005)",
+            "svd_score": 4.458,
+            "agree": false
+          },
+          {
+            "genre": "Film-Noir",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 0,
+            "user_genre_mean": 3.743,
+            "hybrid_pick": "Sweet Smell of Success (1957)",
+            "hybrid_score": 4.115,
+            "hybrid_pick_svd": 4.257,
+            "svd_pick": "Out of the Past (1947)",
+            "svd_score": 4.391,
+            "agree": false
+          },
+          {
+            "genre": "Animation",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 10,
+            "user_genre_mean": 3.65,
+            "hybrid_pick": "Creature Comforts (1989)",
+            "hybrid_score": 4.113,
+            "hybrid_pick_svd": 4.284,
+            "svd_pick": "How to Train Your Dragon (2010)",
+            "svd_score": 4.34,
+            "agree": false
+          },
+          {
+            "genre": "Thriller",
+            "genre_group": "Thriller",
+            "user_rated_in_genre": 42,
+            "user_genre_mean": 3.762,
+            "hybrid_pick": "City of God (Cidade de Deus) (2002)",
+            "hybrid_score": 4.11,
+            "hybrid_pick_svd": 3.994,
+            "svd_pick": "Europa (Zentropa) (1991)",
+            "svd_score": 4.552,
+            "agree": false
+          },
+          {
+            "genre": "Musical",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 3,
+            "user_genre_mean": 3.667,
+            "hybrid_pick": "Duck Soup (1933)",
+            "hybrid_score": 4.052,
+            "hybrid_pick_svd": 4.098,
+            "svd_pick": "Standing in the Shadows of Motown (2002)",
+            "svd_score": 4.426,
+            "agree": false
+          },
+          {
+            "genre": "Horror",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 45,
+            "user_genre_mean": 3.744,
+            "hybrid_pick": "Thesis (Tesis) (1996)",
+            "hybrid_score": 4.026,
+            "hybrid_pick_svd": 4.307,
+            "svd_pick": "Thesis (Tesis) (1996)",
+            "svd_score": 4.307,
+            "agree": true
+          },
+          {
+            "genre": "Children",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 19,
+            "user_genre_mean": 3.605,
+            "hybrid_pick": "Wallace & Gromit: A Close Shave (1995)",
+            "hybrid_score": 4.005,
+            "hybrid_pick_svd": 4.053,
+            "svd_pick": "How to Train Your Dragon (2010)",
+            "svd_score": 4.34,
+            "agree": false
+          },
+          {
+            "genre": "Western",
+            "genre_group": "Other genres",
+            "user_rated_in_genre": 4,
+            "user_genre_mean": 3.375,
+            "hybrid_pick": "Treasure of the Sierra Madre, The (1948)",
+            "hybrid_score": 3.958,
+            "hybrid_pick_svd": 4.198,
+            "svd_pick": "Red River (1948)",
+            "svd_score": 4.255,
+            "agree": false
+          }
+        ],
+        "agree_count": 6,
+        "genres": 19,
+        "unrated_genres": 2,
+        "w_movie": 0.7,
+        "w_user": 0.3,
+        "min_n": 20
+      },
+      "backing": [
+        {
+          "claim": "agree",
+          "values": {
+            "Romance": true,
+            "Crime": true,
+            "Drama": true,
+            "IMAX": false,
+            "Comedy": true,
+            "Action": false,
+            "Documentary": false,
+            "War": false,
+            "Sci-Fi": true,
+            "Fantasy": false,
+            "Mystery": false,
+            "Adventure": false,
+            "Film-Noir": false,
+            "Animation": false,
+            "Thriller": false,
+            "Musical": false,
+            "Horror": true,
+            "Children": false,
+            "Western": false
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Candidates: movies with at least 20 ratings that user 1 has not rated. SVD trained on all ratings, random_state=42."
+      ]
+    },
+    {
+      "id": "V2",
+      "tier": "very",
+      "headline": "SVD predicts held-out ratings with RMSE 0.833, 20.8% below the global-average baseline",
+      "chart_type": "table",
+      "advisor": "chart_advice_model_scores.json",
+      "takeaway": "Across 5 folds SVD scores RMSE 0.833 (sd 0.0008) and MAE 0.637, against 0.864 for user and movie biases alone and 1.052 for the global mean. Most of the gain comes from the biases; latent factors add a further 3.5%.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/very/V2.py"
+      ],
+      "query_text": "def v2_model_cv(conn, folds):\n    from surprise import SVD, BaselineOnly, accuracy\n    from surprise.model_selection import KFold\n    _, data = load_surprise(conn)\n    scores = {\"Global mean\": [], \"User + movie bias\": [], \"SVD (latent factors)\": []}\n    maes = {k: [] for k in scores}\n    for tr, te in KFold(n_splits=folds, random_state=42).split(data):\n        mu = tr.global_mean\n        truth = np.array([r for (_, _, r) in te])\n        scores[\"Global mean\"].append(float(np.sqrt(np.mean((truth - mu) ** 2))))\n        maes[\"Global mean\"].append(float(np.mean(np.abs(truth - mu))))\n        for name, algo in ((\"User + movie bias\", BaselineOnly(verbose=False)), (\"SVD (latent factors)\", SVD(random_state=42))):\n            pred = algo.fit(tr).test(te)\n            scores[name].append(accuracy.rmse(pred, verbose=False))\n            maes[name].append(accuracy.mae(pred, verbose=False))\n    return [{\"model\": k, \"rmse\": round(float(np.mean(v)), 4), \"rmse_sd\": round(float(np.std(v)), 4),\n             \"mae\": round(float(np.mean(maes[k])), 4), \"folds\": [round(x, 4) for x in v]} for k, v in scores.items()]",
+      "data": {
+        "rows": [
+          {
+            "model": "Global mean",
+            "rmse": 1.0519,
+            "rmse_sd": 0.0006,
+            "mae": 0.8408,
+            "folds": [
+              1.0525,
+              1.0509,
+              1.0525,
+              1.0516,
+              1.0521
+            ]
+          },
+          {
+            "model": "User + movie bias",
+            "rmse": 0.8638,
+            "rmse_sd": 0.0005,
+            "mae": 0.665,
+            "folds": [
+              0.8635,
+              0.8648,
+              0.8635,
+              0.8635,
+              0.8638
+            ]
+          },
+          {
+            "model": "SVD (latent factors)",
+            "rmse": 0.8333,
+            "rmse_sd": 0.0008,
+            "mae": 0.6375,
+            "folds": [
+              0.8333,
+              0.8347,
+              0.8321,
+              0.833,
+              0.8334
+            ]
+          }
+        ],
+        "folds": 5,
+        "gain_vs_global_pct": 20.8,
+        "gain_vs_bias_pct": 3.5
+      },
+      "backing": [
+        {
+          "claim": "below baseline",
+          "values": {
+            "Global mean": 1.0519,
+            "User + movie bias": 0.8638,
+            "SVD (latent factors)": 0.8333
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "surprise KFold(5, random_state=42); SVD defaults (100 factors, 20 epochs, random_state=42). Permutation importance does not apply to a latent-factor model; the driver model with permutation importance is card C5. The advisor lists only kpi_card and table for this three-row result, so it is a table with in-cell RMSE bars."
+      ]
+    },
+    {
+      "id": "V3",
+      "tier": "very",
+      "headline": "Genres explain 3.6% of rating variance, the movie itself 20.3%, and adding who is rating lifts it to 34.6%",
+      "chart_type": "table",
+      "advisor": "chart_advice_variance_steps.json",
+      "takeaway": "Each step is a nested additive model fitted on all 1,048,575 ratings, scored by adjusted R2 so the 21,144 movie and user effects pay for their size. Knowing the user adds 14.3 points on top of the movie, almost as much as the movie adds over genre (16.6), which is the case for personalisation.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/very/V3.py"
+      ],
+      "query_text": "def v3_variance(conn):\n    df = pd.read_sql(\"SELECT userId, movieId, rating FROM dataset\", conn)\n    gen = pd.read_sql(\"SELECT movieId, genre FROM movie_genres WHERE genre <> '(no genres listed)'\", conn)\n    flags = pd.crosstab(gen.movieId, gen.genre).clip(upper=1)\n    y = df[\"rating\"].values\n    n = len(y)\n    sst = ((y - y.mean()) ** 2).sum()\n\n    def adj(r2v, p):\n        return 1 - (1 - r2v) * (n - 1) / (n - p - 1)\n\n    G = flags.reindex(df.movieId).fillna(0).values\n    A = np.column_stack([np.ones(n), G])\n    beta, *_ = np.linalg.lstsq(A, y, rcond=None)\n    r2_g = 1 - ((y - A @ beta) ** 2).sum() / sst\n    mu = y.mean()\n    bi = df.assign(e=y - mu).groupby(\"movieId\")[\"e\"].transform(\"mean\").values\n    r2_m = 1 - ((y - mu - bi) ** 2).sum() / sst\n    bu = np.zeros(n)\n    for _ in range(15):\n        bu = df.assign(e=y - mu - bi).groupby(\"userId\")[\"e\"].transform(\"mean\").values\n        bi = df.assign(e=y - mu - bu).groupby(\"movieId\")[\"e\"].transform(\"mean\").values\n    r2_mu = 1 - ((y - mu - bi - bu) ** 2).sum() / sst\n    nm, nu = df.movieId.nunique(), df.userId.nunique()\n    steps = [(\"Genres (19 flags)\", r2_g, G.shape[1]), (\"Movie identity\", r2_m, nm - 1),\n             (\"Movie + user\", r2_mu, nm + nu - 2)]\n    out, prev = [], 0.0\n    for name, r2v, p in steps:\n        a = adj(r2v, p)\n        out.append({\"step\": name, \"r2\": round(float(r2v), 4), \"adj_r2\": round(float(a), 4), \"params\": int(p),\n                    \"adj_r2_pct\": round(100 * float(a), 1), \"increment_pct\": round(100 * (float(a) - prev), 1)})\n        prev = float(a)\n    return {\"steps\": out, \"n\": int(n)}",
+      "data": {
+        "steps": [
+          {
+            "step": "Genres (19 flags)",
+            "r2": 0.0363,
+            "adj_r2": 0.0363,
+            "params": 19,
+            "adj_r2_pct": 3.6,
+            "increment_pct": 3.6
+          },
+          {
+            "step": "Movie identity",
+            "r2": 0.2134,
+            "adj_r2": 0.2027,
+            "params": 14025,
+            "adj_r2_pct": 20.3,
+            "increment_pct": 16.6
+          },
+          {
+            "step": "Movie + user",
+            "r2": 0.3591,
+            "adj_r2": 0.3459,
+            "params": 21144,
+            "adj_r2_pct": 34.6,
+            "increment_pct": 14.3
+          }
+        ],
+        "n": 1048575
+      },
+      "backing": [
+        {
+          "claim": "almost as much as",
+          "values": {
+            "Genres (19 flags)": 3.6,
+            "Movie identity": 16.6,
+            "Movie + user": 14.3
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "In-sample fit; V2 is the out-of-sample check. Movie identity subsumes genre, so the steps are sequential, baseline = intercept only (adjusted R2 = 0). The advisor lists only kpi_card and table for this three-step result (waterfall was not compatible), so it is a table with in-cell bars."
+      ]
+    },
+    {
+      "id": "V4",
+      "tier": "very",
+      "headline": "Crime leads in 1 of 3 activity bands; 4 of 84 genre-pair comparisons reverse inside a band",
+      "chart_type": "heatmap",
+      "advisor": "chart_advice_group_activity.json",
+      "takeaway": "The check compares every pair of genre groups overall and then within light, regular and heavy raters. The 4 reversals involve near-tied pairs such as Crime and Drama, so the overall ranking is not an artefact of who rates which genre (no strong Simpson's paradox).",
+      "lang": "SQL + Python",
+      "query_files": [
+        "01_queries/very/V4.sql",
+        "01_queries/very/V4.py"
+      ],
+      "query_text": "SELECT cg.genre_group, ua.activity_band,\n       AVG(cg.rating) AS avg_rating,\n       COUNT(*) AS n\nFROM clean_genre cg\nJOIN user_activity ua ON ua.userId = cg.userId\nGROUP BY cg.genre_group, ua.activity_band\nORDER BY cg.genre_group, ua.activity_band\n\ndef v4_simpson(rows, overall):\n    bands = sorted({r[\"activity_band\"] for r in rows})\n    cell = {(r[\"genre_group\"], r[\"activity_band\"]): r[\"avg_rating\"] for r in rows}\n    groups = [g[\"genre_group\"] for g in overall]\n    om = {g[\"genre_group\"]: g[\"mean\"] for g in overall}\n    pairs = reversals = 0\n    flips = []\n    for i, a in enumerate(groups):\n        for b in groups[i + 1:]:\n            sign = np.sign(om[a] - om[b])\n            for band in bands:\n                pairs += 1\n                if np.sign(cell[(a, band)] - cell[(b, band)]) != sign:\n                    reversals += 1\n                    flips.append(f\"{a} vs {b} in {band}\")\n    top_same = sum(max(groups, key=lambda g: cell[(g, band)]) == groups[0] for band in bands)\n    return {\"bands\": bands, \"pairs\": pairs, \"reversals\": reversals, \"flips\": flips,\n            \"top_group\": groups[0], \"top_same_bands\": top_same, \"band_count\": len(bands)}",
+      "data": {
+        "rows": [
+          {
+            "genre_group": "Action",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.362,
+            "n": 179019
+          },
+          {
+            "genre_group": "Action",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.568,
+            "n": 25237
+          },
+          {
+            "genre_group": "Action",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.596,
+            "n": 89678
+          },
+          {
+            "genre_group": "Adventure",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.429,
+            "n": 139099
+          },
+          {
+            "genre_group": "Adventure",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.599,
+            "n": 20747
+          },
+          {
+            "genre_group": "Adventure",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.636,
+            "n": 70512
+          },
+          {
+            "genre_group": "Comedy",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.367,
+            "n": 256802
+          },
+          {
+            "genre_group": "Comedy",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.511,
+            "n": 30840
+          },
+          {
+            "genre_group": "Comedy",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.564,
+            "n": 108352
+          },
+          {
+            "genre_group": "Crime",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.607,
+            "n": 106251
+          },
+          {
+            "genre_group": "Crime",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.8,
+            "n": 14768
+          },
+          {
+            "genre_group": "Crime",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.811,
+            "n": 50847
+          },
+          {
+            "genre_group": "Drama",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.613,
+            "n": 295968
+          },
+          {
+            "genre_group": "Drama",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.801,
+            "n": 36355
+          },
+          {
+            "genre_group": "Drama",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.793,
+            "n": 129381
+          },
+          {
+            "genre_group": "Other genres",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.449,
+            "n": 477141
+          },
+          {
+            "genre_group": "Other genres",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.626,
+            "n": 58863
+          },
+          {
+            "genre_group": "Other genres",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.656,
+            "n": 218801
+          },
+          {
+            "genre_group": "Romance",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.475,
+            "n": 126356
+          },
+          {
+            "genre_group": "Romance",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.656,
+            "n": 16783
+          },
+          {
+            "genre_group": "Romance",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.67,
+            "n": 58070
+          },
+          {
+            "genre_group": "Thriller",
+            "activity_band": "Heavy (200+)",
+            "avg_rating": 3.43,
+            "n": 171757
+          },
+          {
+            "genre_group": "Thriller",
+            "activity_band": "Light (20-49)",
+            "avg_rating": 3.633,
+            "n": 24781
+          },
+          {
+            "genre_group": "Thriller",
+            "activity_band": "Regular (50-199)",
+            "avg_rating": 3.646,
+            "n": 82399
+          }
+        ],
+        "bands": [
+          "Heavy (200+)",
+          "Light (20-49)",
+          "Regular (50-199)"
+        ],
+        "pairs": 84,
+        "reversals": 4,
+        "flips": [
+          "Crime vs Drama in Heavy (200+)",
+          "Crime vs Drama in Light (20-49)",
+          "Other genres vs Thriller in Light (20-49)",
+          "Action vs Comedy in Heavy (200+)"
+        ],
+        "top_group": "Crime",
+        "top_same_bands": 1,
+        "band_count": 3
+      },
+      "backing": [
+        {
+          "claim": "leads",
+          "values": {
+            "Action|Heavy (200+)": 3.362,
+            "Action|Light (20-49)": 3.568,
+            "Action|Regular (50-199)": 3.596,
+            "Adventure|Heavy (200+)": 3.429,
+            "Adventure|Light (20-49)": 3.599,
+            "Adventure|Regular (50-199)": 3.636,
+            "Comedy|Heavy (200+)": 3.367,
+            "Comedy|Light (20-49)": 3.511,
+            "Comedy|Regular (50-199)": 3.564,
+            "Crime|Heavy (200+)": 3.607,
+            "Crime|Light (20-49)": 3.8,
+            "Crime|Regular (50-199)": 3.811,
+            "Drama|Heavy (200+)": 3.613,
+            "Drama|Light (20-49)": 3.801,
+            "Drama|Regular (50-199)": 3.793,
+            "Other genres|Heavy (200+)": 3.449,
+            "Other genres|Light (20-49)": 3.626,
+            "Other genres|Regular (50-199)": 3.656,
+            "Romance|Heavy (200+)": 3.475,
+            "Romance|Light (20-49)": 3.656,
+            "Romance|Regular (50-199)": 3.67,
+            "Thriller|Heavy (200+)": 3.43,
+            "Thriller|Light (20-49)": 3.633,
+            "Thriller|Regular (50-199)": 3.646
+          }
+        }
+      ],
+      "chart": {},
+      "notes": []
+    },
+    {
+      "id": "V5",
+      "tier": "very",
+      "headline": "Trimming fixes 206 titles, but 32 movies still share a title with another id",
+      "chart_type": "bar",
+      "advisor": "chart_advice_repair_audit.json",
+      "takeaway": "Trimming leaves the 32 colliding movie ids unchanged; together they carry 3,078 ratings, so a user-by-title pivot (as in the item-item method) would silently merge them. Keying every matrix on movieId, as this dashboard does, avoids it; the source file is unchanged.",
+      "lang": "Python",
+      "query_files": [
+        "01_queries/very/V5.py"
+      ],
+      "query_text": "def v5_repair_audit(conn):\n    m = pd.read_sql(\"SELECT movieId, title FROM movies\", conn)\n    counts = pd.read_sql(\"SELECT movieId, COUNT(*) AS n FROM dataset GROUP BY movieId\", conn)\n    out = {}\n    for stage, t in ((\"Before (raw)\", m[\"title\"]), (\"After (trimmed)\", m[\"title\"].str.strip())):\n        dup = t.duplicated(keep=False)\n        ids = m.loc[dup, \"movieId\"]\n        out[stage] = {\"untrimmed\": int((t != t.str.strip()).sum()), \"distinct_titles\": int(t.nunique()),\n                      \"movies_sharing_title\": int(dup.sum()),\n                      \"ratings_on_shared_titles\": int(counts.loc[counts.movieId.isin(ids), \"n\"].sum())}\n    after = m.assign(t=m[\"title\"].str.strip())\n    shared = after[after.t.duplicated(keep=False)].merge(counts, on=\"movieId\", how=\"left\").fillna({\"n\": 0})\n    pairs = shared.groupby(\"t\").agg(movies=(\"movieId\", \"size\"), rated=(\"n\", lambda s: int((s > 0).sum())),\n                                    ratings=(\"n\", \"sum\"))\n    out[\"titles_with_two_rated_ids\"] = int((pairs.rated >= 2).sum())\n    out[\"examples\"] = pairs.sort_values(\"ratings\", ascending=False).head(5).reset_index().to_dict(\"records\")\n    return out",
+      "data": {
+        "Before (raw)": {
+          "untrimmed": 206,
+          "distinct_titles": 27262,
+          "movies_sharing_title": 32,
+          "ratings_on_shared_titles": 3078
+        },
+        "After (trimmed)": {
+          "untrimmed": 0,
+          "distinct_titles": 27262,
+          "movies_sharing_title": 32,
+          "ratings_on_shared_titles": 3078
+        },
+        "titles_with_two_rated_ids": 5,
+        "examples": [
+          {
+            "t": "Aladdin (1992)",
+            "movies": 2,
+            "rated": 1,
+            "ratings": 2152.0
+          },
+          {
+            "t": "Emma (1996)",
+            "movies": 2,
+            "rated": 2,
+            "ratings": 419.0
+          },
+          {
+            "t": "War of the Worlds (2005)",
+            "movies": 2,
+            "rated": 2,
+            "ratings": 342.0
+          },
+          {
+            "t": "Hamlet (2000)",
+            "movies": 2,
+            "rated": 2,
+            "ratings": 82.0
+          },
+          {
+            "t": "Casanova (2005)",
+            "movies": 2,
+            "rated": 1,
+            "ratings": 33.0
+          }
+        ]
+      },
+      "backing": [
+        {
+          "claim": "fixes/raises",
+          "values": {
+            "before": {
+              "untrimmed": 206,
+              "distinct_titles": 27262,
+              "movies_sharing_title": 32,
+              "ratings_on_shared_titles": 3078
+            },
+            "after": {
+              "untrimmed": 0,
+              "distinct_titles": 27262,
+              "movies_sharing_title": 32,
+              "ratings_on_shared_titles": 3078
+            }
+          }
+        }
+      ],
+      "chart": {},
+      "notes": [
+        "Audit only: shows what the clean view changes. movies.csv is never modified."
+      ]
+    }
+  ],
+  "setup_sql": "CREATE INDEX ix_d_user ON dataset(userId);\nCREATE INDEX ix_d_movie ON dataset(movieId);\nCREATE TABLE movies_clean AS\nSELECT movieId,\n       TRIM(title) AS title,\n       genres,\n       CASE WHEN TRIM(title) GLOB '*([0-9][0-9][0-9][0-9])'\n            THEN CAST(substr(TRIM(title), -5, 4) AS INTEGER) END AS year\nFROM movies;\nCREATE TABLE movie_genres AS\nWITH RECURSIVE split(movieId, genre, rest) AS (\n    SELECT movieId, '', genres || '|' FROM movies_clean\n    UNION ALL\n    SELECT movieId, substr(rest, 1, instr(rest, '|') - 1), substr(rest, instr(rest, '|') + 1)\n    FROM split WHERE rest <> ''\n)\nSELECT movieId, genre,\n       CASE WHEN genre IN ('Drama','Comedy','Action','Thriller','Adventure','Romance','Crime')\n            THEN genre ELSE 'Other genres' END AS genre_group\nFROM split WHERE genre <> '';\nCREATE INDEX ix_mg ON movie_genres(movieId);\nCREATE VIEW clean AS\nSELECT d.userId, d.movieId, d.rating, m.title, m.year, (m.year / 10) * 10 AS decade, m.genres\nFROM dataset d JOIN movies_clean m ON m.movieId = d.movieId;\nCREATE TABLE clean_genre AS\nSELECT c.userId, c.movieId, c.rating, c.decade, g.genre, g.genre_group\nFROM clean c JOIN movie_genres g ON g.movieId = c.movieId;\nCREATE TABLE user_activity AS\nSELECT userId, COUNT(*) AS n_ratings, AVG(rating) AS avg_rating,\n       CASE WHEN COUNT(*) < 50 THEN 'Light (20-49)'\n            WHEN COUNT(*) < 200 THEN 'Regular (50-199)' ELSE 'Heavy (200+)' END AS activity_band\nFROM dataset GROUP BY userId;;\n",
+  "caveats": [
+    "No date analysis: the timestamp column was classified as possible personal data by the profiler (its values match a phone-number pattern), so the kit refuses to query it. Confirm it is a Unix timestamp to unlock time trends.",
+    "ratings.csv holds exactly 1,048,575 data rows, the Excel row limit, so it is likely a truncated extract of a larger MovieLens release (users 1-7,120). The last user may be incomplete.",
+    "Genre statistics count a multi-genre movie once per genre, so genre totals exceed the rating count.",
+    "Key dimension genre_group = the seven most-rated genres plus 'Other genres' (the remaining 13, including '(no genres listed)').",
+    "Thresholds chosen: at least 20 ratings per movie for stable item statistics, a Bayesian prior of 100 ratings (C3), at least 50 shared raters (C4), at least 1,000 ratings per heatmap cell (M3), at least 1,000 ratings per genre (M2), at least 100 titles per genre (M4).",
+    "Outliers kept everywhere: very heavy raters, one-rating movies and the 7-rating no-genre group stay in the data.",
+    "userId and movieId were profiled as numeric measures; they are treated as keys here. The profiler's movieId outlier flag is therefore not a data problem.",
+    "Not sampled: all 1,048,575 ratings and 27,278 catalogue rows were analysed."
+  ],
+  "assumptions": [
+    "The 'one user' for objective 2 is userId 1 (deterministic, 175 ratings). Change SEED_USER in compute.py to rerun for anyone else.",
+    "Hybrid score follows the project readme: 0.7 x movie average + 0.3 x the user's genre mean; where the user has no ratings in a genre, their overall mean is used (the readme does not say).",
+    "Rating bands: low = 0.5-2, mid = 2.5-3.5, high = 4-5 stars. Activity bands: light 20-49, regular 50-199, heavy 200+ ratings.",
+    "Release year is parsed from the '(YYYY)' at the end of the title.",
+    "Audience: course reviewers and analysts; target measure = rating; key dimension = genre_group (genre has 20 members, above the 3-8 the spec allows)."
+  ],
+  "corrections": [
+    "M1 headline: was 'Film-Noir highest and (no genres listed) the lowest (3.07)' -> now 'Horror the lowest (3.26) among genres with 1,000+ ratings', because the no-genre placeholder has only 7 ratings.",
+    "E3 takeaway: was '(no genres listed) has just 7' -> now names Film-Noir as the least-rated real genre, because the placeholder is not a genre.",
+    "M4: was 'No genres listed is the least covered (97.6%)' -> now Documentary (67.4%), because the placeholder is a data gap, not a genre (moved to E4/notes).",
+    "C4: minimum shared raters raised from 50 to 200, because the 50-rater list put noisy 56-rater neighbours (Ravenous, The Longest Yard) in second and third place.",
+    "E5 takeaway: was 'heavy raters contribute most of the co-rating signal' (not computed) -> now the computed share of ratings from the top tenth of users.",
+    "V3 takeaway: was 'the user step adds more than genre and movie identity together' -> now 'almost as much as the movie adds over genre', because 14.3 < 20.3 and 14.3 vs 16.6.",
+    "V5 headline: was 'trimming raises title collisions from 32 to 32' -> now 'still share a title', because trimming leaves collisions unchanged.",
+    "M5 takeaway: added the computed median gap and range so 'spread wider than the gap' is backed by values."
+  ],
+  "how_built": [
+    "Profiled ratings.csv and movies.csv with analyze_csv.py (00_profile/profile*.json), full files, no sampling.",
+    "derive.py writes analysis-grain CSVs (genre, band, decade, decile) that chart_advisor.py rules on; every chart type is from a compatible list.",
+    "compute.py loads ratings.csv as `dataset` and movies.csv as `movies` in SQLite, builds the clean tables in 01_queries/setup.sql, and saves each card's SQL or Python to 01_queries/<tier>/ before running it.",
+    "M1 is reconciled against ask_data.py (02_results/answer.json) for all 20 genres; C1 is reconciled against the advisor's Pareto concentration block.",
+    "Models: scikit-learn HistGradientBoosting with 5-fold CV and held-out permutation importance (C5); scikit-surprise SVD and BaselineOnly with 5-fold CV (V2); all random_state=42.",
+    "build.py embeds 02_results/data.json verbatim and draws every chart as inline SVG; verify.py and check_dashboard.py both pass."
+  ],
+  "source_files": [
+    "ratings.csv",
+    "movies.csv"
+  ],
+  "catalogue_rows": 27278
+}</script>
+<script>
+(function(){
+const D = JSON.parse(document.getElementById('dashboard-data').textContent);
+const MEMBERS = D.key_members;
+const COL = {"Drama":"#f2b84b","Comedy":"#7fc8f8","Action":"#ef5d52","Thriller":"#a593f5",
+             "Adventure":"#5fc1ad","Romance":"#f491b8","Crime":"#c8d46a","Other genres":"#a8a196"};
+const NEUTRAL = "#d2c8b2";
+const card = id => D.cards.find(c => c.id === id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const fmt = (v, d=0) => Number(v).toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+const short = t => { let s = String(t).trim().replace(/\s*\(\d{4}\)$/, '');
+  const m = s.match(/^(.*?), (The|A|An)( \(.*\))?$/); return m ? m[2] + ' ' + m[1] + (m[3] || '') : s; };
+let active = null;
+
+function fit(str, px, size=12){ const max = Math.max(3, Math.floor(px / (size * 0.55))); str = String(str);
+  return str.length > max ? str.slice(0, max - 1) + '\u2026' : str; }
+function svg(w, h, inner, label){ return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${esc(label)}">${inner}</svg>`; }
+function mem(m){ return m ? ` data-member="${esc(m)}"` : ''; }
+
+// ---------- generic horizontal bar ----------
+function hbar(w, rows, o){
+  const lw = Math.min(o.lw || 120, w * 0.38), rh = o.rh || 22, top = 4, vw = 58;
+  const max = o.max || Math.max(...rows.map(r => r.v));
+  const bw = Math.max(20, w - lw - vw - 6);
+  let g = '';
+  rows.forEach((r, i) => {
+    const y = top + i * rh, len = Math.max(1, bw * r.v / max);
+    g += `<g${mem(r.m)}><text class="lbl" x="${lw - 6}" y="${y + rh * .68}" text-anchor="end">${esc(fit(r.l, lw - 8))}</text>
+      <rect x="${lw}" y="${y + 3}" width="${len}" height="${rh - 7}" rx="2" fill="${r.c || (r.m ? COL[r.m] : NEUTRAL)}"></rect>
+      <text class="val" x="${lw + len + 5}" y="${y + rh * .68}">${esc(r.t)}</text></g>`;
+  });
+  return svg(w, top * 2 + rows.length * rh, g, o.label);
+}
+
+// ---------- vertical histogram / column ----------
+function cols(w, rows, o){
+  const h = o.h || 220, pl = 46, pb = 34, pt = 14, cw = (w - pl - 8) / rows.length;
+  const max = Math.max(...rows.map(r => r.v));
+  let g = '';
+  for (let k = 0; k <= 4; k++){ const v = max * k / 4, y = pt + (h - pt - pb) * (1 - k / 4);
+    g += `<line x1="${pl}" x2="${w - 4}" y1="${y}" y2="${y}" stroke="#3a3157"></line><text class="ax" x="${pl - 5}" y="${y + 4}" text-anchor="end">${o.ytick(v)}</text>`; }
+  rows.forEach((r, i) => { const bh = (h - pt - pb) * r.v / max, x = pl + i * cw;
+    g += `<rect x="${x + 1.5}" y="${h - pb - bh}" width="${Math.max(1, cw - 3)}" height="${bh}" fill="${r.c || NEUTRAL}"><title>${esc(r.l)}: ${esc(r.t)}</title></rect>`;
+    if (cw > 24 || i % 2 === 0) g += `<text class="ax" x="${x + cw / 2}" y="${h - pb + 14}" text-anchor="middle">${esc(r.l)}</text>`; });
+  if (o.xlab) g += `<text class="ax" x="${pl + (w - pl) / 2}" y="${h - 4}" text-anchor="middle">${esc(o.xlab)}</text>`;
+  return svg(w, h, g, o.label);
+}
+
+// ---------- svg table with optional in-cell bars ----------
+function table(w, rows, colsDef, o){
+  const rh = o.rh || 24, hh = 22;
+  let used = 0; const show = [];
+  colsDef.forEach(c => { if (used + c.min <= w || c.must) { show.push(c); used += c.min; } });
+  const extra = Math.max(0, w - used), flexTot = show.reduce((a, c) => a + (c.flex || 0), 0) || 1;
+  let x = 0; show.forEach(c => { c.x = x; c.w = c.min + extra * (c.flex || 0) / flexTot; x += c.w; });
+  let g = '';
+  show.forEach(c => g += `<text class="ax" x="${c.align === 'end' ? c.x + c.w - 6 : c.x + 4}" y="15" text-anchor="${c.align === 'end' ? 'end' : 'start'}">${esc(c.h)}</text>`);
+  g += `<line x1="0" x2="${w}" y1="${hh}" y2="${hh}" stroke="#3a3157"></line>`;
+  rows.forEach((r, i) => {
+    const y = hh + i * rh; let cells = `<rect x="0" y="${y}" width="${w}" height="${rh}" fill="${i % 2 ? 'transparent' : 'rgba(255,255,255,.025)'}"></rect>`;
+    if (o.member) cells += `<rect x="0" y="${y + 4}" width="3" height="${rh - 8}" fill="${COL[o.member(r)]}"></rect>`;
+    show.forEach(c => {
+      if (c.bar){ const bl = Math.max(1, (c.w - 54) * c.bar(r));
+        cells += `<rect x="${c.x + 4}" y="${y + 6}" width="${bl}" height="${rh - 12}" rx="2" fill="${o.member ? COL[o.member(r)] : NEUTRAL}"></rect>
+                  <text class="val" x="${c.x + 8 + bl}" y="${y + rh * .66}">${esc(c.v(r))}</text>`; }
+      else { const tx = c.align === 'end' ? c.x + c.w - 6 : c.x + 4;
+        cells += `<text class="lbl" x="${tx}" y="${y + rh * .66}" text-anchor="${c.align === 'end' ? 'end' : 'start'}"${c.color ? ` fill="${c.color(r)}"` : ''}>${esc(fit(c.v(r), c.w - 8))}</text>`; }
+    });
+    g += `<g${mem(o.member ? o.member(r) : null)}>${cells}</g>`;
+  });
+  return svg(w, hh + rows.length * rh + 2, g, o.label);
+}
+
+function heat(w, rows, rowKeys, colKeys, o){
+  const lw = Math.min(104, w * .3), ch = 30, top = 22, cw = (w - lw - 4) / colKeys.length;
+  const vals = rows.filter(o.ok).map(r => r.avg_rating), lo = Math.min(...vals), hi = Math.max(...vals);
+  const shade = v => { const t = (v - lo) / (hi - lo || 1); const a = [58,49,87], b = [242,184,75];
+    return `rgb(${a.map((x, i) => Math.round(x + (b[i] - x) * t)).join(',')})`; };
+  let g = '';
+  colKeys.forEach((c, j) => { if (cw >= 26 || j % 2 === 0) g += `<text class="ax" x="${lw + j * cw + cw / 2}" y="14" text-anchor="middle">${esc(o.colLabel(c, cw))}</text>`; });
+  rowKeys.forEach((rk, i) => {
+    const y = top + i * ch; let cells = `<text class="lbl" x="${lw - 6}" y="${y + ch * .62}" text-anchor="end">${esc(fit(rk, lw - 8))}</text>`;
+    colKeys.forEach((ck, j) => { const r = rows.find(x => x[o.rk] === rk && x[o.ck] === ck); const x = lw + j * cw;
+      if (!r) return;
+      const good = o.ok(r);
+      cells += `<rect x="${x + 1}" y="${y + 1}" width="${cw - 2}" height="${ch - 2}" fill="${good ? shade(r.avg_rating) : '#2b2442'}" stroke="${good ? 'none' : '#3a3157'}"><title>${esc(rk)}, ${esc(o.colLabel(ck, 99))}: ${fmt(r.avg_rating, 2)} (${fmt(r.n)} ratings)</title></rect>`;
+      if (good && cw >= 34) cells += `<text x="${x + cw / 2}" y="${y + ch * .62}" text-anchor="middle" style="font-size:11px;fill:${(r.avg_rating - lo) / (hi - lo) > .55 ? '#221c35' : '#efe7d4'}">${fmt(r.avg_rating, 2)}</text>`; });
+    g += `<g${mem(rk)}>${cells}</g>`;
+  });
+  g += `<text class="ax" x="${lw}" y="${top + rowKeys.length * ch + 16}">${esc(o.legend(lo, hi))}</text>`;
+  return svg(w, top + rowKeys.length * ch + 24, g, o.label);
+}
+
+// ---------- per-card renderers ----------
+const R = {};
+R.E1 = (w, c) => cols(w, c.data.rows.map(r => ({l: r.rating, v: r.n, t: fmt(r.n) + ' (' + r.pct + '%)', c: r.rating >= 4 ? '#f2b84b' : (r.rating <= 2 ? '#e5675c' : NEUTRAL)})),
+  {label: 'Ratings by star value', xlab: 'Stars given', ytick: v => fmt(v / 1000) + 'k'});
+R.E2 = (w, c) => hbar(w, c.data.rows.map(r => ({l: r.rated_status, v: r.n, t: fmt(r.n), c: r.rated_status === 'Rated' ? '#f2b84b' : '#8f86a6'})), {label: 'Catalogue titles rated vs never rated', lw: 110, rh: 34});
+R.E3 = (w, c) => hbar(w, c.data.rows.map(r => ({l: r.genre, v: r.n_ratings, t: fmt(r.n_ratings), m: r.genre_group})), {label: 'Ratings per genre'});
+R.E4 = (w, c) => table(w, c.data.rows, [
+  {h: 'Check', min: 190, flex: 3, must: true, v: r => r.issue},
+  {h: 'File', min: 86, flex: 1, v: r => r.source},
+  {h: 'Count', min: 60, align: 'end', must: true, v: r => fmt(r.n), color: r => r.n === 0 ? '#9fd6a9' : '#f2b84b'}], {label: 'Data quality checks'});
+R.E5 = (w, c) => cols(w, c.data.bins.map(b => ({l: w > 520 ? `${b.lo}-${b.hi}` : `${b.lo}`, v: b.users, t: fmt(b.users) + ' users'})),
+  {label: 'Users by number of ratings', xlab: 'Ratings per user (bin start)', ytick: v => fmt(v), h: 230});
+R.M1 = (w, c) => hbar(w, c.data.rows.map(r => ({l: r.genre, v: r.avg_rating - 3, t: fmt(r.avg_rating, 2) + (r.n_ratings < 1000 ? ' (n=' + r.n_ratings + ')' : ''), m: r.genre_group})),
+  {label: 'Average rating by genre (bars start at 3.0 stars)', max: 1.0});
+R.M2 = (w, c) => { const lw = Math.min(110, w * .32), rh = 21, top = 26, bw = w - lw - 6; let g = '';
+  [['4-5 stars', '#f2b84b'], ['2.5-3.5', '#8f86a6'], ['0.5-2', '#e5675c']].forEach((k, i) => g += `<rect x="${lw + i * 92}" y="4" width="10" height="10" fill="${k[1]}"></rect><text class="ax" x="${lw + 14 + i * 92}" y="13">${k[0]}</text>`);
+  c.data.rows.forEach((r, i) => { const y = top + i * rh; let x = lw, seg = '';
+    [[r.pct_high, '#f2b84b'], [r.pct_mid, '#8f86a6'], [r.pct_low, '#e5675c']].forEach(([p, col]) => { const sw = bw * p / 100; seg += `<rect x="${x}" y="${y + 2}" width="${sw}" height="${rh - 5}" fill="${col}"></rect>`; x += sw; });
+    seg += `<text x="${lw + 4}" y="${y + rh * .66}" style="font-size:11px;fill:#221c35">${fmt(r.pct_high, 1)}%</text>`;
+    g += `<g${mem(r.genre_group)}><text class="lbl" x="${lw - 6}" y="${y + rh * .68}" text-anchor="end">${esc(fit(r.genre, lw - 8))}</text>${seg}</g>`; });
+  return svg(w, top + c.data.rows.length * rh + 4, g, 'Share of ratings by band for each genre'); };
+R.M3 = (w, c) => { const decs = [...new Set(c.data.rows.map(r => r.decade))].sort((a, b) => a - b);
+  return heat(w, c.data.rows, MEMBERS, decs, {rk: 'genre_group', ck: 'decade', ok: r => r.n >= c.data.min_cell,
+    colLabel: (d, cw) => cw >= 34 ? d + 's' : "'" + String(d).slice(2), label: 'Average rating by genre group and release decade',
+    legend: (lo, hi) => `Darker to brighter: ${fmt(lo, 2)} to ${fmt(hi, 2)} stars; outlined cells have fewer than ${fmt(c.data.min_cell)} ratings`}); };
+R.M4 = (w, c) => hbar(w, c.data.rows.map(r => ({l: r.genre, v: r.pct_never, t: r.pct_never + '% of ' + fmt(r.titles), m: r.genre_group})), {label: 'Share of catalogue titles never rated, by genre', max: 100});
+R.M5 = (w, c) => { const lw = Math.min(104, w * .3), rh = 30, top = 6, ax = 22, lo = 0.5, hi = 5, bw = w - lw - 10;
+  const X = v => lw + bw * (v - lo) / (hi - lo); let g = '';
+  [1, 2, 3, 4, 5].forEach(t => g += `<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${top + c.data.rows.length * rh}" stroke="#3a3157"></line><text class="ax" x="${X(t)}" y="${top + c.data.rows.length * rh + 14}" text-anchor="middle">${t}</text>`);
+  c.data.rows.forEach((r, i) => { const y = top + i * rh, mid = y + rh / 2, col = COL[r.genre_group];
+    g += `<g${mem(r.genre_group)}><text class="lbl" x="${lw - 6}" y="${mid + 4}" text-anchor="end">${esc(fit(r.genre_group, lw - 8))}</text>
+      <line x1="${X(r.lo)}" x2="${X(r.hi)}" y1="${mid}" y2="${mid}" stroke="${col}"></line>
+      <rect x="${X(r.q1)}" y="${y + 6}" width="${X(r.q3) - X(r.q1)}" height="${rh - 12}" fill="${col}" fill-opacity=".35" stroke="${col}"></rect>
+      <line x1="${X(r.median)}" x2="${X(r.median)}" y1="${y + 5}" y2="${y + rh - 5}" stroke="#efe7d4" stroke-width="2"></line>
+      <circle cx="${X(r.min)}" cy="${mid}" r="2.5" fill="${col}"></circle><circle cx="${X(r.max)}" cy="${mid}" r="2.5" fill="${col}"></circle>
+      <title>${esc(r.genre_group)}: median ${fmt(r.median, 2)}, ${fmt(r.movies)} movies</title></g>`; });
+  return svg(w, top + c.data.rows.length * rh + ax, g, 'Distribution of movie average ratings by genre group'); };
+R.C1 = (w, c) => { const h = 240, pl = 40, pr = 40, pt = 14, pb = 34, rows = c.data.rows, cw = (w - pl - pr) / rows.length, ih = h - pt - pb; let g = '';
+  [0, 25, 50, 75, 100].forEach(t => { const y = pt + ih * (1 - t / 100); g += `<line x1="${pl}" x2="${w - pr}" y1="${y}" y2="${y}" stroke="#3a3157"></line><text class="ax" x="${w - pr + 5}" y="${y + 4}">${t}%</text>`; });
+  rows.forEach((r, i) => { const x = pl + i * cw, bh = ih * r.share_pct / 100;
+    g += `<rect x="${x + 2}" y="${pt + ih - bh}" width="${cw - 4}" height="${bh}" fill="${i < 2 ? '#f2b84b' : NEUTRAL}"><title>Decile ${r.decile}: ${fmt(r.ratings)} ratings (${r.share_pct}%)</title></rect>
+      <text class="ax" x="${x + cw / 2}" y="${h - pb + 14}" text-anchor="middle">${r.decile}</text>`; });
+  const pts = rows.map((r, i) => `${pl + i * cw + cw / 2},${pt + ih * (1 - r.cum_pct / 100)}`).join(' ');
+  g += `<polyline points="${pts}" fill="none" stroke="#efe7d4" stroke-width="2"></polyline>`;
+  rows.forEach((r, i) => g += `<circle cx="${pl + i * cw + cw / 2}" cy="${pt + ih * (1 - r.cum_pct / 100)}" r="3" fill="#efe7d4"><title>Cumulative ${r.cum_pct}%</title></circle>`);
+  g += `<text class="ax" x="${pl}" y="${h - 4}">Popularity decile of rated movies (1 = most rated); line = cumulative share</text>`;
+  return svg(w, h, g, 'Pareto of ratings across movie popularity deciles'); };
+R.C2 = (w, c) => hbar(w, c.data.groups.map(g => ({l: g.genre_group, v: g.mean - 3, t: fmt(g.mean, 3), m: g.genre_group})), {label: 'Mean rating by genre group (bars start at 3.0)', max: 0.8, rh: 26});
+R.C3 = (w, c) => table(w, c.data.rows, [
+  {h: 'Genre', min: 82, flex: 1, must: true, v: r => r.genre},
+  {h: 'Top movie', min: 130, flex: 4, must: true, v: r => short(r.title)},
+  {h: 'Ratings', min: 62, align: 'end', v: r => fmt(r.n_ratings)},
+  {h: 'Avg', min: 46, align: 'end', v: r => fmt(r.avg_rating, 2)},
+  {h: 'Weighted', min: 70, align: 'end', must: true, v: r => fmt(r.weighted, 2)}], {label: 'Best movie per genre by weighted rating', member: r => r.genre_group, rh: 22});
+R.C4 = (w, c) => table(w, c.data.top, [
+  {h: 'Neighbour of ' + short(c.data.seed_title), min: 140, flex: 3, must: true, v: r => short(r.title)},
+  {h: 'Pearson r', min: 110, flex: 2, must: true, bar: r => r.r / c.data.top[0].r, v: r => fmt(r.r, 2)},
+  {h: 'Shared raters', min: 90, align: 'end', v: r => fmt(r.n_co)},
+  {h: 'Genre cosine', min: 86, align: 'end', v: r => fmt(r.genre_cosine, 2)}], {label: 'Item-item neighbours of the seed movie'});
+R.C5 = (w, c) => { const rows = c.data.drivers, max = rows[0].importance + rows[0].sd;
+  const lw = Math.min(170, w * .42), rh = 24, bw = w - lw - 60; let g = '';
+  rows.forEach((r, i) => { const y = 4 + i * rh, len = bw * r.importance / max, sd = bw * r.sd / max;
+    g += `<text class="lbl" x="${lw - 6}" y="${y + rh * .68}" text-anchor="end">${esc(fit(r.feature, lw - 8))}</text>
+      <rect x="${lw}" y="${y + 4}" width="${Math.max(1, len)}" height="${rh - 8}" rx="2" fill="${i < 2 ? '#f2b84b' : NEUTRAL}"></rect>
+      <line x1="${lw + len - sd}" x2="${lw + len + sd}" y1="${y + rh / 2}" y2="${y + rh / 2}" stroke="#efe7d4"></line>
+      <text class="val" x="${lw + len + sd + 5}" y="${y + rh * .68}">${fmt(r.importance, 3)}</text>`; });
+  return svg(w, 8 + rows.length * rh, g, 'Permutation importance on held-out folds'); };
+R.V1 = (w, c) => table(w, c.data.picks, [
+  {h: 'Genre', min: 78, flex: 1, must: true, v: r => r.genre},
+  {h: 'Hybrid pick', min: 120, flex: 3, must: true, v: r => short(r.hybrid_pick)},
+  {h: 'Hybrid', min: 52, align: 'end', v: r => fmt(r.hybrid_score, 2)},
+  {h: 'SVD pick', min: 120, flex: 3, v: r => r.agree ? 'same movie' : short(r.svd_pick), color: r => r.agree ? '#9fd6a9' : '#efe7d4'},
+  {h: 'SVD est.', min: 60, align: 'end', v: r => fmt(r.svd_score, 2)}], {label: 'Best movie per genre for user ' + c.data.user, member: r => r.genre_group, rh: 22});
+R.V2 = (w, c) => table(w, c.data.rows, [
+  {h: 'Model (5-fold CV)', min: 130, flex: 2, must: true, v: r => r.model},
+  {h: 'RMSE (lower is better)', min: 130, flex: 3, must: true, bar: r => r.rmse / c.data.rows[0].rmse, v: r => fmt(r.rmse, 3)},
+  {h: 'sd', min: 54, align: 'end', v: r => fmt(r.rmse_sd, 4)},
+  {h: 'MAE', min: 54, align: 'end', v: r => fmt(r.mae, 3)}], {label: 'Cross-validated prediction error', rh: 34});
+R.V3 = (w, c) => table(w, c.data.steps, [
+  {h: 'Nested model', min: 120, flex: 2, must: true, v: r => r.step},
+  {h: 'Adjusted R\u00b2', min: 130, flex: 3, must: true, bar: r => r.adj_r2 / c.data.steps[2].adj_r2, v: r => r.adj_r2_pct + '%'},
+  {h: 'Added', min: 60, align: 'end', v: r => '+' + r.increment_pct},
+  {h: 'Effects', min: 64, align: 'end', v: r => fmt(r.params)}], {label: 'Sequential variance decomposition', rh: 34});
+R.V4 = (w, c) => heat(w, c.data.rows, MEMBERS, ['Light (20-49)', 'Regular (50-199)', 'Heavy (200+)'], {rk: 'genre_group', ck: 'activity_band', ok: () => true,
+  colLabel: (b, cw) => cw > 90 ? b : b.split(' ')[0], label: 'Average rating by genre group within each activity band',
+  legend: (lo, hi) => `Darker to brighter: ${fmt(lo, 2)} to ${fmt(hi, 2)} stars`});
+R.V5 = (w, c) => { const b = c.data['Before (raw)'], a = c.data['After (trimmed)'];
+  return hbar(w, [
+    {l: 'Untrimmed, before', v: b.untrimmed, t: fmt(b.untrimmed), c: '#e5675c'}, {l: 'Untrimmed, after', v: a.untrimmed, t: fmt(a.untrimmed), c: '#9fd6a9'},
+    {l: 'Shared title, before', v: b.movies_sharing_title, t: fmt(b.movies_sharing_title), c: '#e5675c'}, {l: 'Shared title, after', v: a.movies_sharing_title, t: fmt(a.movies_sharing_title), c: '#f2b84b'}],
+    {label: 'Title repair before and after', lw: 140, rh: 30}); };
+
+function hero(w){
+  const c = card(D.hero.card_ref), rows = c.data.rows, h = Math.min(320, Math.max(220, w * .62)), p = 34, ih = h - p * 2, iw = w - p * 2;
+  const X = f => p + iw * f, Y = s => p + ih * (1 - s / 100);
+  let g = `<rect x="${p}" y="${p}" width="${iw}" height="${ih}" fill="none" stroke="#3a3157"></rect>
+    <line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(100)}" stroke="#8f86a6" stroke-dasharray="4 4"></line>`;
+  const pts = [[0, 0]].concat(rows.map((r, i) => [(i + 1) / rows.length, r.cum_pct]));
+  g += `<polygon points="${pts.map(q => X(q[0]) + ',' + Y(q[1])).join(' ')} ${X(1)},${Y(0)}" fill="#f2b84b" fill-opacity=".14"></polygon>`;
+  g += `<polyline points="${pts.map(q => X(q[0]) + ',' + Y(q[1])).join(' ')}" fill="none" stroke="#f2b84b" stroke-width="3"></polyline>`;
+  const t = rows[1].cum_pct;
+  g += `<line x1="${X(.2)}" x2="${X(.2)}" y1="${Y(0)}" y2="${Y(t)}" stroke="#efe7d4" stroke-dasharray="2 3"></line>
+    <line x1="${X(0)}" x2="${X(.2)}" y1="${Y(t)}" y2="${Y(t)}" stroke="#efe7d4" stroke-dasharray="2 3"></line>
+    <circle cx="${X(.2)}" cy="${Y(t)}" r="5" fill="#efe7d4"></circle>
+    <text x="${X(.2) + 10}" y="${Y(t) + 18}" style="font-size:14px;font-weight:600">${fmt(t, 1)}% of ratings</text>
+    <text class="ax" x="${X(.2) + 10}" y="${Y(t) + 34}">from the most-rated 20% of movies</text>
+    <text class="ax" x="${X(.5)}" y="${h - 8}" text-anchor="middle">Share of rated movies, most-rated first</text>
+    <text class="ax" x="${p - 6}" y="${Y(100) + 4}" text-anchor="end">100%</text><text class="ax" x="${p - 6}" y="${Y(0) + 4}" text-anchor="end">0%</text>
+    <text class="ax" x="${X(.62)}" y="${Y(52)}" fill="#8f86a6">equal share line</text>`;
+  return svg(w, h, g, 'Cumulative share of ratings across movies');
+}
+
+// ---------- syntax highlighting ----------
+const KW = /\b(SELECT|FROM|WHERE|GROUP|BY|ORDER|HAVING|JOIN|LEFT|CROSS|ON|AS|WITH|RECURSIVE|UNION|ALL|CASE|WHEN|THEN|ELSE|END|AND|OR|NOT|IN|IS|NULL|DISTINCT|LIMIT|DESC|ASC|OVER|PARTITION|CREATE|TABLE|VIEW|INDEX|EXISTS|COALESCE|CAST|INTEGER|ROUND|COUNT|SUM|AVG|MIN|MAX|ROW_NUMBER|def|return|for|in|if|else|import|from|as|with|lambda|not|and|or|None|True|False)\b/g;
+function hl(src){
+  const out = []; const re = /(--[^\n]*|#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(?=\()|([^\s]+?|\s+)/g;
+  let m; const words = [];
+  src.replace(/(--[^\n]*|#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|([\s\S])/g, (all, com, str, num, word, other) => {
+    if (com) out.push(`<span class="c">${esc(com)}</span>`);
+    else if (str) out.push(`<span class="s">${esc(str)}</span>`);
+    else if (num) out.push(`<span class="n">${num}</span>`);
+    else if (word) { KW.lastIndex = 0; out.push(KW.test(word) ? `<span class="k">${word}</span>` : esc(word)); }
+    else out.push(esc(other)); return all; });
+  return out.join('');
+}
+function queryPanel(text, lang){
+  return `<details data-query><summary>Show the query</summary><div class="qbar"><span data-lang>${esc(lang)}</span>
+    <button data-copy type="button">Copy</button></div><pre><code>${hl(text)}</code></pre></details>`;
+}
+
+// ---------- build page ----------
+const WIDE = new Set(['E3', 'M1', 'M2', 'M3', 'C3', 'V1', 'C1']);
+D.cards.forEach(c => {
+  const el = document.createElement('article');
+  el.dataset.cardId = c.id; if (WIDE.has(c.id)) el.className = 'wide';
+  el.innerHTML = `<p class="cid">${c.id}</p><h3>${esc(c.headline)}</h3><div class="chart"></div>
+    <p class="take">${esc(c.takeaway)}</p>${c.notes.length ? `<ul class="notes">${c.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+    ${queryPanel(c.query_text, c.lang)}`;
+  document.querySelector(`#tier-${c.tier} .grid`).appendChild(el);
+});
+document.getElementById('hero-head').textContent = D.hero.headline;
+const c1 = card('C1').data, v2 = card('V2').data.rows, v3 = card('V3').data.steps;
+document.getElementById('hero-sub').textContent = `${fmt(D.row_count)} MovieLens ratings of ${fmt(c1.rated_movies)} movies by ${fmt(card('E3').data.rows[0].all_users)} users. The least-rated half of the catalogue shares ${c1.bottom50_share}% of the ratings, so the models below are judged on how well they reach past the blockbusters.`;
+document.getElementById('ticket').innerHTML = [
+  [fmt(v2[2].rmse, 3), 'SVD RMSE, 5-fold'], [card('V2').data.gain_vs_global_pct + '%', 'lower error than the global mean'],
+  [v3[2].adj_r2_pct + '%', 'variance explained by movie + user']].map(t => `<div><b>${t[0]}</b>${t[1]}</div>`).join('');
+['caveats', 'assumptions', 'corrections', 'how_built'].forEach(k => {
+  const ul = document.getElementById(k === 'how_built' ? 'how-built' : k);
+  (D[k].length ? D[k] : ['None']).forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }); });
+document.querySelector('#setup-panel code').innerHTML = hl(D.setup_sql);
+
+const chips = document.getElementById('chips');
+MEMBERS.forEach(m => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+  b.dataset.highlight = m; b.setAttribute('aria-pressed', 'false'); b.innerHTML = `<i style="background:${COL[m]}"></i>${esc(m)}`; chips.appendChild(b); });
+function applyHighlight(){
+  document.querySelectorAll('[data-member]').forEach(e => e.classList.toggle('is-dimmed', !!active && e.dataset.member !== active));
+  document.querySelectorAll('[data-highlight]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.highlight === active)));
+}
+chips.addEventListener('click', e => { const b = e.target.closest('[data-highlight]'); if (!b) return;
+  active = active === b.dataset.highlight ? null : b.dataset.highlight; applyHighlight(); });
+
+document.addEventListener('click', e => { const b = e.target.closest('button[data-copy]'); if (!b) return;
+  const code = b.closest('details').querySelector('code').textContent;
+  const done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400); };
+  try { navigator.clipboard.writeText(code).then(done, () => { fallback(code); done(); }); } catch (err) { fallback(code); done(); } });
+function fallback(t){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); } catch (e) {} a.remove(); }
+
+function drawAll(){
+  const hv = document.getElementById('hero-viz');
+  try { hv.innerHTML = hero(Math.floor(hv.clientWidth)); } catch (err) { hv.innerHTML = `<div data-chart-error>${esc(err.message)}</div>`; }
+  D.cards.forEach(c => { const host = document.querySelector(`[data-card-id="${c.id}"] .chart`);
+    try { host.innerHTML = R[c.id](Math.floor(host.clientWidth), c); }
+    catch (err) { host.innerHTML = `<div data-chart-error>Chart failed: ${esc(err.message)}</div>`; console.error(c.id, err); } });
+  applyHighlight();
+}
+let tm; window.addEventListener('resize', () => { clearTimeout(tm); tm = setTimeout(drawAll, 120); });
+window.addEventListener('beforeprint', () => document.querySelectorAll('details[data-query]').forEach(d => d.open = true));
+drawAll();
+})();
+</script>
+</body>
+</html>
