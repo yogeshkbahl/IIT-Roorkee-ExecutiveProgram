@@ -13,6 +13,16 @@ Every module has two parts:
 
 ---
 
+## 🎓 Program Completed
+
+I completed the **Executive Post Graduate Certification in Data Science & Artificial Intelligence**, run by **iHUB DivyaSampark at IIT Roorkee** with Intellipaat. iHUB DivyaSampark is a joint initiative of the Department of Science & Technology (Govt. of India) and IIT Roorkee.
+
+<p align="center">
+  <a href="certificate/iit-roorkee-executive-pg-data-science-ai.jpg"><img src="certificate/iit-roorkee-executive-pg-data-science-ai.jpg" alt="IIT Roorkee Executive PG Certification in Data Science & AI" width="380"/></a>
+</p>
+
+---
+
 ## 🗺️ Learning Path
 
 ### 1. Foundations
