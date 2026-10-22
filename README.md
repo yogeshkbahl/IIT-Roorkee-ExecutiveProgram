@@ -27,6 +27,11 @@ I completed the **Executive Post Graduate Certification in Data Science & Artifi
 
 ## 🗺️ Learning Path
 
+### 0. Live Classes
+| # | Module | What's inside |
+|---|--------|---------------|
+| 001 | [IITR Live Classes](001-IITR-LiveClass) | Class practice notebooks for Python basics, NumPy, Pandas, Matplotlib, linear algebra, statistics and hypothesis testing, plus hands-on case studies (insurance claims, heart disease, Airbnb, retail purchases), class slides, reference books and datasets |
+
 ### 1. Foundations
 | # | Module | What's inside |
 |---|--------|---------------|
@@ -111,6 +116,80 @@ I completed the **Executive Post Graduate Certification in Data Science & Artifi
 ## ▶️ Run the Notebooks in Google Colab
 
 Click any **Open in Colab** button to run that notebook in your browser with nothing to install. Datasets load straight from this repo, so there's nothing to upload. In Colab, choose **Runtime → Run all**.
+
+**001 · IITR Live Classes** (Python, NumPy, Pandas, Statistics and hands-on case studies from the live sessions)
+
+<details><summary><b>Python Basics</b> (6 notebooks)</summary>
+
+| Notebook | Run |
+|---|---|
+| Basic Python | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-BasicPython.ipynb) |
+| Lists & Functions | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-List.ipynb) |
+| Tuples | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-Tuple.ipynb) |
+| Sets | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-Set.ipynb) |
+| Dictionaries | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-Dictionary.ipynb) |
+| File Handling | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-FileHandling.ipynb) |
+
+</details>
+
+<details><summary><b>NumPy</b> (5 notebooks)</summary>
+
+| Notebook | Run |
+|---|---|
+| NumPy Day 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/Numpy_day_1.ipynb) |
+| NumPy Part 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-Numpy-Part1.ipynb) |
+| NumPy Part 1 (EPGC) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-242007-ClassPractice-Numpy-Part1-EPGC.ipynb) |
+| NumPy Part 2 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-Numpy-Part2.ipynb) |
+| NumPy Part 2 Hands-on (EPGC) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-242007-Handson-Numpy-Part2-EPGC.ipynb) |
+
+</details>
+
+<details><summary><b>Pandas</b> (5 notebooks)</summary>
+
+| Notebook | Run |
+|---|---|
+| Pandas Day 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/Pandas_day_1.ipynb) |
+| Pandas Day 2 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/Pandas_Day_2.ipynb) |
+| Pandas Part 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-ClassPractice-Pandas-Part1.ipynb) |
+| Pandas: W3Schools Exercises | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-280724-W3-Pandas-Part1.ipynb) |
+| Pandas (EPGC) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-242007-ClassPractice-Pandas-EPGC.ipynb) |
+
+</details>
+
+<details><summary><b>Visualization & Linear Algebra</b> (3 notebooks)</summary>
+
+| Notebook | Run |
+|---|---|
+| Matplotlib | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/Matplotlib.ipynb) |
+| Linear Algebra | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/Dataset/Linear%20Algebra.ipynb) |
+| Linear Algebra 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/Linear%20Algebra/Linear_Algebra-1/Linear_Algebra%20%281%29.ipynb) |
+
+</details>
+
+<details><summary><b>Statistics & Probability</b> (7 notebooks)</summary>
+
+| Notebook | Run |
+|---|---|
+| Stats Basics: Day 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/Stats/Stats_Basic_Day_1_20th_Oct.ipynb) |
+| Stats Basics: Days 1–3 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/Stats_Basic_Day_1_and_2%2C3_27th_Oct.ipynb) |
+| Statistics Class 1 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/LivePython-Basic-242007-ClassPractice-Statistics_Class1.ipynb) |
+| Statistics Class 3 Hands-on | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/Live%20Python-240510-ClassPractice-Statistics_Class3%20Handson.ipynb) |
+| Stats & Probability Hands-on | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/19_01_2025_Stats_and_Prob_handson_by_tanmay.ipynb) |
+| Hypothesis Testing (Feb 8) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/Stats/08Feb2025-PythonFile-RudraClass.ipynb) |
+| Hypothesis Testing (Feb 9) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/Stats/09Feb2025-PythonFile-RudraClass.ipynb) |
+
+</details>
+
+<details><summary><b>ML Hands-on & Case Studies</b> (4 notebooks)</summary>
+
+| Notebook | Run |
+|---|---|
+| Linear Regression: Insurance Claims | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/ML_LinearRegression%2022Feb-16MarClasses/Linear%20Regression%20Hands%20On%2001032025/01032025.ipynb) |
+| Decision Tree: Heart Disease | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/Decision%20Tree/Decision_tree_Handson.ipynb) |
+| Case Study: Airbnb | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/notebooks/25_01_2025_AirB%26B_case_study_by_Tanmay.ipynb) |
+| Case Study: Retail Purchase Data | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/001-IITR-LiveClass/IITR%20Documentation/PowerPoint%20Presentations/Stats/Case_Study_Purchase_Data_Harsh%20-%20Harshit%20Trivedi.ipynb) |
+
+</details>
 
 **3 · Complete Linear Regression**
 
@@ -252,6 +331,8 @@ Click any **Open in Colab** button to run that notebook in your browser with not
 | Parts Of Speech Tagging | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/26-CompleteNLP%20For%20Machine%20Learning/Practicals/8-Parts%20Of%20Speech%20Tagging.ipynb) |
 | Named Entity Recognition | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yogeshkbahl/IIT-Roorkee-ExecutiveProgram/blob/main/26-CompleteNLP%20For%20Machine%20Learning/Practicals/9-Named%20Entity%20Recognition.ipynb) |
 
+> **Large datasets not stored here:** GitHub caps files at 100 MB, so three public datasets from the live classes are left out. Download them from Kaggle if you need them: [Credit Card Fraud](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud) (`creditcard.csv`), [Netflix Prize](https://www.kaggle.com/datasets/netflix-inc/netflix-prize-data) (`combined_data_*.txt`) and [News Category](https://www.kaggle.com/datasets/rmisra/news-category-dataset) (`News_Category_Dataset_v3.json`). Class recordings are also kept off GitHub.
+
 > **Note:** The two Word2Vec notebooks download Google's 1.6 GB pretrained model, so their first run takes a few minutes. The ensemble notebooks (modules 11–14) run large hyperparameter searches and can take 10+ minutes.
 
 ---
@@ -284,6 +365,7 @@ The `.zip` files in modules 5, 22, 24 and 25 are full standalone projects. Unzip
 
 ```
 IIT-Roorkee-ExecutiveProgram/
+├── 001-IITR-LiveClass/                ← live-class notebooks, slides, books, datasets
 ├── 2-Introduction/
 ├── 3-Complete Linear Regression/
 │   ├── Regression Handwritten Notes/   ← PDFs (theory)
